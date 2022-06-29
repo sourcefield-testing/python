@@ -1,0 +1,30 @@
+name: GitHub Actions Demo
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: rmacklin/fetch-through-merge-base@v0
+        with:
+          base_ref: master
+          head_ref: ${{ github.sha }}
+      # now we've fetched commits through the merge-base of the source branch
+      # and target branch of the pull request, so we can do things like:
+      - run: git checkout $(git merge-base master ${{ github.sha }})
+      - run: git log --oneline master..
+      - run: git diff --name-only master...
+      - run: echo ${{ github.event.pull_request.head.sha }}
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
