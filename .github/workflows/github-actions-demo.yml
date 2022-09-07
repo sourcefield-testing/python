@@ -31,6 +31,8 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
+      - run: echo ${{ github.event.repository.languages_url }}
+      - run: echo $(curl ${{ github.event.repository.languages_url }})
       - name: Find changed files
         run: |
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
