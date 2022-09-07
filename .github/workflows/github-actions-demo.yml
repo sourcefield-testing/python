@@ -45,5 +45,10 @@ jobs:
             ${{ env.LS_DIFF }}
             ```
             Commit: ${{ github.sha }}
+            <details><summary>Event payload</summary>
+            ```json
+            ${{ github.event }}
+            ```
+            </details>
           comment_includes: 'Changed files:'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
