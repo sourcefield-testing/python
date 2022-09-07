@@ -46,6 +46,7 @@ jobs:
             ```
             Commit: ${{ github.sha }}
             <details><summary>Event payload</summary>
+            
             ```json
             ${{ toJson(github.event) }}
             ```
