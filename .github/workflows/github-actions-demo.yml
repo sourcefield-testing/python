@@ -47,7 +47,7 @@ jobs:
             Commit: ${{ github.sha }}
             <details><summary>Event payload</summary>
             ```json
-            ${{ github.event }}
+            ${{ toJson(github.event) }}
             ```
             </details>
           comment_includes: 'Changed files:'
