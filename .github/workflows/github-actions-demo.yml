@@ -37,6 +37,10 @@ jobs:
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
           git diff --name-only main...${{ github.sha }} >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+      - run: |
+          echo 'EVENT_CONTENTS<<EOF' >> $GITHUB_ENV
+          cat "${{ github.event_path }}" > $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - name: Update or create PR comment
         uses: thollander/actions-comment-pull-request@v1
         with:
@@ -50,6 +54,10 @@ jobs:
             
             ```json
             ${{ toJson(github.event) }}
+            ```
+            
+            ```
+            ${{ env.EVENT_CONTENTS }}
             ```
             </details>
           comment_includes: 'Changed files:'
