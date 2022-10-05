@@ -11,6 +11,9 @@ outputs:
     description: 'The time we greeted you'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'us-docker.pkg.dev/plumbr/source-field/sourcefield-lsif-typescript:62b533a'
   args:
-    - ${{ inputs.who-to-greet }}
+    - lsif-typescript
+    - index
+    - --output
+    - lsif.json
