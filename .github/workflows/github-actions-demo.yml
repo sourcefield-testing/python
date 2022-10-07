@@ -33,8 +33,8 @@ jobs:
           ls ${{ github.workspace }}
       - run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }})" >> $GITHUB_ENV
       - run: echo "Languages = ${{ env.LANGUAGES }}"
-      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python' }}"
-      - run: echo "JS = ${{ contains(env.LANGUAGES, 'JavaScript' }}"
+      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
+      - run: echo "JS = ${{ contains(env.LANGUAGES, 'JavaScript') }}"
       - name: Find changed files
         run: |
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
