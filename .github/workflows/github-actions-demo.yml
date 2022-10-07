@@ -31,7 +31,10 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - run: echo "Languages = $(curl -s ${{ github.event.repository.languages_url }})"
+      - run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }})" >> $GITHUB_ENV
+      - run: echo "Languages = ${{ env.LANGUAGES }}"
+      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python' }}"
+      - run: echo "JS = ${{ contains(env.LANGUAGES, 'JavaScript' }}"
       - name: Find changed files
         run: |
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
