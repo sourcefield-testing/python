@@ -1,0 +1,45 @@
+name: SourceField GitHub Workflow
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: rmacklin/fetch-through-merge-base@v0
+        with:
+          base_ref: main
+          head_ref: ${{ github.sha }}
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }})" >> $GITHUB_ENV
+      - name: Find changed files
+        run: |
+          echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
+          git diff --name-only main...${{ github.sha }} >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+      - name: Update or create PR comment
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: |
+            Changed files:
+            ```
+            ${{ env.LS_DIFF }}
+            ```
+            Commit: ${{ github.sha }}
+            Languages: ${{ env.LANGUAGES }}
+
+            <details><summary>Event payload</summary>
+
+            ```json
+            ${{ toJson(github.event) }}
+            ```
+            </details>
+          comment_includes: "Changed files:"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
