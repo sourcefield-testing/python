@@ -3,6 +3,74 @@ on:
   pull_request:
     types: [opened, synchronize]
 jobs:
+  fetchLanguages:
+    name: Fetch Languages in Repo
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.get-present-languages.outputs.GO }}
+      java: ${{ steps.get-present-languages.outputs.JAVA }}
+      javascript-typescript: ${{ steps.get-present-languages.outputs.JAVASCRIPT_TYPESCRIPT }}
+      python: ${{ steps.get-present-languages.outputs.PYTHON }}
+    steps:
+      - name: Print present languages
+        id: print-present-languages
+        run: |
+          echo "$(curl -s ${{ github.event.repository.languages_url }})" | jq -r 'keys[]'
+          echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[])" >> $GITHUB_ENV
+          echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
+      - name: Get Present Languages
+        id: get-present-languages
+        run: |
+          languages=$(curl -s ${{ github.event.repository.languages_url }})
+          echo "$languages" | jq -r 'keys[]' |
+          while IFS= read -r language; do
+            case "$language" in
+            Go)
+              echo "GO=1" >> $GITHUB_OUTPUT
+              ;;
+            Java)
+              echo "JAVA=1" >> $GITHUB_OUTPUT
+              ;;
+            JavaScript | TypeScript)
+              echo "JAVASCRIPT_TYPESCRIPT=1" >> $GITHUB_OUTPUT
+              ;;
+            Python)
+              echo "PYTHON=1" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Language not yet supported: ${language}"
+              ;;
+            esac
+          done
+#  parseGo:
+#    name: Parse Go Map
+#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
+#    needs: [fetchLanguages]
+#    if: needs.fetchLanguages.outputs.go == '1'
+#    steps:
+#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
+#  parseJava:
+#    name: Parse Java Map
+#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
+#    needs: [fetchLanguages]
+#    if: needs.fetchLanguages.outputs.java == '1'
+#    steps:
+#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
+#  parseJavascriptTypeScript:
+#    name: Parse Javascript/TypeScript Map
+#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
+#    needs: [fetchLanguages]
+#    if: needs.fetchLanguages.outputs.javascript-typescript == '1'
+#    steps:
+#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
+#  parsePython:
+#    name: Parse Python Map
+#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
+#    needs: [fetchLanguages]
+#    if: needs.fetchLanguages.outputs.python == '1'
+#    steps:
+#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
+
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
@@ -31,10 +99,8 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - run: echo "LANGUAGES=${{ fromJson($(curl -s ${{ github.event.repository.languages_url }})) }}" >> $GITHUB_ENV
+      - run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }})" >> $GITHUB_ENV
       - run: echo "Languages = ${{ env.LANGUAGES }}"
-      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
-      - run: echo "JS = ${{ contains(env.LANGUAGES, 'JavaScript') }}"
       - name: Find changed files
         run: |
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
