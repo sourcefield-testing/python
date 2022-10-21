@@ -43,10 +43,10 @@ jobs:
             esac
           done
       - name: Parse Python
-        uses: 'us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:421ea40'
+        uses: 'https://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:421ea40'
         if: env.PYTHON == '1'
       - name: Parse Go
-        uses: 'us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:57d9af0'
+        uses: 'https://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:57d9af0'
         if: env.GO == '1'
 #  parseGo:
 #    name: Parse Go Map
