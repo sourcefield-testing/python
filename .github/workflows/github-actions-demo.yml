@@ -42,6 +42,12 @@ jobs:
               ;;
             esac
           done
+      - name: Parse Python
+        uses: 'us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:421ea40'
+        if: env.PYTHON == '1'
+      - name: Parse Go
+        uses: 'us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:57d9af0'
+        if: env.GO == '1'
 #  parseGo:
 #    name: Parse Go Map
 #    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
@@ -65,7 +71,7 @@ jobs:
 #      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
 #  parsePython:
 #    name: Parse Python Map
-#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
+#    runs-on: us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
 #    needs: [fetchLanguages]
 #    if: needs.fetchLanguages.outputs.python == '1'
 #    steps:
