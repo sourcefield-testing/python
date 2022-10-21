@@ -77,8 +77,9 @@ jobs:
     needs: [fetchLanguages]
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
-      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
       - run: lsif-python -h
+      - run: ls -lah
+      - run: lsif-python index --project-name="${PWD##*/}"
 
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
