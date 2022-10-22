@@ -78,8 +78,8 @@ jobs:
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
       - run: lsif-python -h
-      - run: ls -lah
-      - run: lsif-python index --project-name="${PWD##*/}"
+      - run: ls -lah /github/workspace
+#      - run: lsif-python index --project-name="${PWD##*/}"
 
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
