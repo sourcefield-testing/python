@@ -14,13 +14,8 @@ jobs:
     steps:
       - name: Print present languages
         id: print-present-languages
-        run: |
-          echo "$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')"
-          echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_ENV
-          echo "env.LANGUAGES = ${{ env.LANGUAGES }}"
-      - run: |
-          echo "env.LANGUAGES = ${{ env.LANGUAGES }}"
-          echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
+        run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_ENV
+      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
       - name: Get Present Languages
         id: get-present-languages
         run: |
@@ -91,8 +86,11 @@ jobs:
 #          args: -lah /github/workspace
       - name: Run LSIF parser
         run: |
-          cd /github/workspace
           ls -lah
+          ls -lah /__w/python/python
+          echo "${GITHUB_REPOSITORY}"
+          echo "${GITHUB_WORKSPACE}"
+          echo "${LANGUAGES}"
           lsif-python index --project-name="${{ github.repository }}"
 
   Explore-GitHub-Actions:
