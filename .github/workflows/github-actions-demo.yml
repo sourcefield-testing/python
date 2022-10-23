@@ -17,7 +17,9 @@ jobs:
         run: |
           echo "$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')"
           echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_ENV
-          echo "Languages = ${{ env.LANGUAGES }}"
+          echo "env.LANGUAGES = ${{ env.LANGUAGES }}"
+      - run: |
+          echo "env.LANGUAGES = ${{ env.LANGUAGES }}"
           echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
       - name: Get Present Languages
         id: get-present-languages
