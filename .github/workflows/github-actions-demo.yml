@@ -17,6 +17,7 @@ jobs:
         run: |
           echo "$(curl -s ${{ github.event.repository.languages_url }})" | jq -r 'keys[]'
           echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_ENV
+          echo "Languages = ${{ env.LANGUAGES }}"
           echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
       - name: Get Present Languages
         id: get-present-languages
@@ -77,6 +78,10 @@ jobs:
     needs: [fetchLanguages]
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
       - name: LSIF Parser
         uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
         with:
