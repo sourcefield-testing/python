@@ -72,13 +72,17 @@ jobs:
   parsePython:
     name: Parse Python Map
     runs-on: ubuntu-latest
-    container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
+#    container:
+#      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
     needs: [fetchLanguages]
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
-      - run: lsif-python -h
-      - run: ls -lah /github/workspace
+      - name: LSIF Parser
+        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
+        with:
+          entrypoint: /bin/ls
+          args: -lah /github/workspace
+#      - run: lsif-python -h
 #      - run: lsif-python index --project-name="${PWD##*/}"
 
   Explore-GitHub-Actions:
