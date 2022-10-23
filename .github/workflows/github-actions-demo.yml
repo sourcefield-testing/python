@@ -15,7 +15,7 @@ jobs:
       - name: Print present languages
         id: print-present-languages
         run: |
-          echo "$(curl -s ${{ github.event.repository.languages_url }})" | jq -r 'keys[]'
+          echo "Language keys: $(curl -s ${{ github.event.repository.languages_url }})" | jq -r 'keys[]'
           echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_ENV
           echo "Languages = ${{ env.LANGUAGES }}"
           echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
@@ -73,8 +73,8 @@ jobs:
   parsePython:
     name: Parse Python Map
     runs-on: ubuntu-latest
-#    container:
-#      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
+    container:
+      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
     needs: [fetchLanguages]
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
@@ -82,13 +82,16 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
-      - name: LSIF Parser
-        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
-        with:
-          entrypoint: /bin/ls
-          args: -lah /github/workspace
-#      - run: lsif-python -h
-#      - run: lsif-python index --project-name="${PWD##*/}"
+#      - name: LSIF Parser
+#        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
+#        with:
+#          entrypoint: /bin/ls
+#          args: -lah /github/workspace
+      - name: Run LSIF parser
+        run: |
+          cd /github/workspace
+          ls -lah
+          lsif-python index --project-name="${{ github.repository }}"
 
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
