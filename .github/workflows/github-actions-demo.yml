@@ -24,7 +24,6 @@ jobs:
     needs: [fetchLanguages]
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
-      - run: echo "${{ github.sha }}"
       - name: Check out repo (full history)
         uses: actions/checkout@v3
         with:
@@ -36,7 +35,6 @@ jobs:
           if [[ -n "$commits" ]]; then
             git fetch --depth="$(( commits + 1 ))"
           fi
-      - run: echo "${{ github.sha }}"
       - name: Get merge-base
         run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
       - name: Run LSIF parser on base ref
@@ -46,7 +44,7 @@ jobs:
           cat output.json
       - name: Run LSIF parser on head ref
         run: |
-          git checkout ${{ github.sha }}
+          git checkout ${{ github.event.pull_request.head.sha }}
           lsif-python index --project-name="${{ github.repository }}" --output="output.json"
           cat output.json
 #      - name: LSIF Parser
@@ -82,11 +80,11 @@ jobs:
           who-to-greet: 'awesome'
       - uses: rmacklin/fetch-through-merge-base@v0
         with:
-          base_ref: main
-          head_ref: ${{ github.sha }}
+          base_ref: ${{ github.base_ref }}
+          head_ref: ${{ github.event.pull_request.head.sha }}
       # now we've fetched commits through the merge-base of the source branch
       # and target branch of the pull request, so we can do things like:
-      - run: echo "MERGE_BASE=$(git merge-base main ${{ github.sha }})" >> $GITHUB_ENV
+      - run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} ${{ github.event.pull_request.head.sha }})" >> $GITHUB_ENV
       - run: echo "merge base = ${{ env.MERGE_BASE }}"
       - run: echo "HEAD = ${{ github.event.pull_request.head.sha }}"
       - run: git log --oneline main..
@@ -96,7 +94,7 @@ jobs:
       - name: Find changed files
         run: |
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
-          git diff --name-only main...${{ github.sha }} >> $GITHUB_ENV
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
       - name: Update or create PR comment
         uses: thollander/actions-comment-pull-request@v1
@@ -106,7 +104,7 @@ jobs:
             ```
             ${{ env.LS_DIFF }}
             ```
-            Commit: ${{ github.sha }}
+            Commit: ${{ github.event.pull_request.head.sha }}
             <details><summary>Event payload</summary>
             
             ```json
