@@ -72,7 +72,7 @@ jobs:
     name: Process and Diff Python Maps
     runs-on: ubuntu-latest
     container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:c94a5a8'
+      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:94a804b'
     needs:
       - fetchLanguages
       - getMergeBase
