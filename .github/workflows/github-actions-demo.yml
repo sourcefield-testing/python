@@ -72,7 +72,7 @@ jobs:
     name: Process and Diff Python Maps
     runs-on: ubuntu-latest
     container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:89e5168'
+      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:c94a5a8'
     needs:
       - fetchLanguages
       - getMergeBase
@@ -112,9 +112,9 @@ jobs:
         run: |
           git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > /sourcefield/diff.txt
           ls -lah /sourcefield
-#      - name: Diff maps and report metrics to backend
-#        run: |
-#          python3 -m processor.mapdiff.commands - summarize --map1=/sourcefield/base.pickle --map2=/sourcefield/head.pickle --diff=/sourcefield/diff.txt
+      - name: Diff maps and report metrics to backend
+        run: |
+          python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics --map1=/sourcefield/base.pickle --map2=/sourcefield/head.pickle --diff=/sourcefield/diff.txt --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
