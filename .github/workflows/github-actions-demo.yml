@@ -84,6 +84,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+      - name: Set ownership
+        run: |
+          # this is to fix Git not liking the ownership of the checkout dir
+          chown -R $(id -u):$(id -g) $PWD
 #      - name: Get diff
 #        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
       - name: Download base map
