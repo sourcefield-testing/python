@@ -38,7 +38,7 @@ jobs:
           fi
       - run: echo "${{ github.sha }}"
       - name: Get merge-base
-        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} ${{ github.sha }})" >> $GITHUB_ENV
+        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
       - name: Run LSIF parser on base ref
         run: |
           git checkout ${{ env.MERGE_BASE }}
