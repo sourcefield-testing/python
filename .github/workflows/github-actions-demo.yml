@@ -8,10 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       languages: ${{ steps.get-present-languages.outputs.LANGUAGES }}
-      go: ${{ steps.get-present-languages.outputs.GO }}
-      java: ${{ steps.get-present-languages.outputs.JAVA }}
-      javascript-typescript: ${{ steps.get-present-languages.outputs.JAVASCRIPT_TYPESCRIPT }}
-      python: ${{ steps.get-present-languages.outputs.PYTHON }}
     steps:
       - name: Get Present Languages
         id: get-present-languages
@@ -42,11 +38,21 @@ jobs:
           git checkout ${{ env.MERGE_BASE }}
           lsif-python index --project-name="${{ github.repository }}" --output="output.json"
           cat output.json
+      - name: Upload map for base commit
+        uses: actions/upload-artifact@v3
+        with:
+          name: map-base-python
+          path: output.json
       - name: Run LSIF parser on head ref
         run: |
           git checkout ${{ github.event.pull_request.head.sha }}
           lsif-python index --project-name="${{ github.repository }}" --output="output.json"
           cat output.json
+      - name: Upload map for head commit
+        uses: actions/upload-artifact@v3
+        with:
+          name: map-head-python
+          path: output.json
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
 #        with:
