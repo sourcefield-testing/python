@@ -7,18 +7,19 @@ jobs:
     name: Fetch Languages in Repo
     runs-on: ubuntu-latest
     outputs:
+      languages: ${{ steps.get-present-languages.outputs.LANGUAGES }}
       go: ${{ steps.get-present-languages.outputs.GO }}
       java: ${{ steps.get-present-languages.outputs.JAVA }}
       javascript-typescript: ${{ steps.get-present-languages.outputs.JAVASCRIPT_TYPESCRIPT }}
       python: ${{ steps.get-present-languages.outputs.PYTHON }}
     steps:
-      - name: Print present languages
-        id: print-present-languages
-        run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_ENV
-      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
+#      - name: Print present languages
+#        id: print-present-languages
+#      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
       - name: Get Present Languages
         id: get-present-languages
         run: |
+          echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
           languages=$(curl -s ${{ github.event.repository.languages_url }})
           echo "$languages" | jq -r 'keys[]' |
           while IFS= read -r language; do
@@ -74,7 +75,8 @@ jobs:
     container:
       image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
     needs: [fetchLanguages]
-    if: needs.fetchLanguages.outputs.python == '1'
+#    if: needs.fetchLanguages.outputs.python == '1'
+    if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -98,8 +100,8 @@ jobs:
           ls -lah
           echo "${GITHUB_REPOSITORY}"
           echo "${GITHUB_WORKSPACE}"
-          echo "${LANGUAGES}"
-          lsif-python index --project-name="${{ github.repository }}"
+          lsif-python index --project-name="${{ github.repository }}" --output="output.json"
+          cat output.json
 #      - name: Run LSIF parser
 #        uses: addnab/docker-run-action@v3
 #        with:
