@@ -13,95 +13,39 @@ jobs:
       javascript-typescript: ${{ steps.get-present-languages.outputs.JAVASCRIPT_TYPESCRIPT }}
       python: ${{ steps.get-present-languages.outputs.PYTHON }}
     steps:
-#      - name: Print present languages
-#        id: print-present-languages
-#      - run: echo "Python = ${{ contains(env.LANGUAGES, 'Python') }}"
       - name: Get Present Languages
         id: get-present-languages
-        run: |
-          echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
-          languages=$(curl -s ${{ github.event.repository.languages_url }})
-          echo "$languages" | jq -r 'keys[]' |
-          while IFS= read -r language; do
-            case "$language" in
-            Go)
-              echo "GO=1" >> $GITHUB_OUTPUT
-              ;;
-            Java)
-              echo "JAVA=1" >> $GITHUB_OUTPUT
-              ;;
-            JavaScript | TypeScript)
-              echo "JAVASCRIPT_TYPESCRIPT=1" >> $GITHUB_OUTPUT
-              ;;
-            Python)
-              echo "PYTHON=1" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "Language not yet supported: ${language}"
-              ;;
-            esac
-          done
-#      - name: Parse Python
-#        uses: 'https://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:421ea40'
-#        if: env.PYTHON == '1'
-#      - name: Parse Go
-#        uses: 'https://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:57d9af0'
-#        if: env.GO == '1'
-#  parseGo:
-#    name: Parse Go Map
-#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
-#    needs: [fetchLanguages]
-#    if: needs.fetchLanguages.outputs.go == '1'
-#    steps:
-#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
-#  parseJava:
-#    name: Parse Java Map
-#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
-#    needs: [fetchLanguages]
-#    if: needs.fetchLanguages.outputs.java == '1'
-#    steps:
-#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
-#  parseJavascriptTypeScript:
-#    name: Parse Javascript/TypeScript Map
-#    runs-on: <<<<PUT IN DOCKER IMAGE HERRE>>>>
-#    needs: [fetchLanguages]
-#    if: needs.fetchLanguages.outputs.javascript-typescript == '1'
-#    steps:
-#      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
-
+        run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
   parsePython:
-    name: Parse Python Map
+    name: Parse Python Maps
     runs-on: ubuntu-latest
     container:
       image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
     needs: [fetchLanguages]
-#    if: needs.fetchLanguages.outputs.python == '1'
     if: contains(needs.fetchLanguages.outputs.languages, 'JavaScript')
     steps:
-      - name: Check out repository code
+      - name: Check out repo (full history)
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-#      - name: Fetch history through merge-base
-#        uses: rmacklin/fetch-through-merge-base@v0
-#        with:
-#          base_ref: main
-#          head_ref: ${{ github.sha }}
-
+      - name: Get merge-base
+        run: echo "MERGE_BASE=$(git merge-base ${{ github.base_ref }} ${{ github.sha }})" >> $GITHUB_ENV
+      - name: Run LSIF parser on base ref
+        run: |
+          git checkout ${{ env.MERGE_BASE }}
+          lsif-python index --project-name="${{ github.repository }}" --output="output.json"
+          cat output.json
+      - name: Run LSIF parser on head ref
+        run: |
+          git checkout ${{ github.sha }}
+          lsif-python index --project-name="${{ github.repository }}" --output="output.json"
+          cat output.json
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
 #        with:
 #          entrypoint: /bin/ls
 #          args: -lah /github/workspace
-      - name: Run LSIF parser
-        run: |
-          pwd
-          ls -lah
-          echo "${GITHUB_REPOSITORY}"
-          echo "${GITHUB_WORKSPACE}"
-          lsif-python index --project-name="${{ github.repository }}" --output="output.json"
-          cat output.json
 #      - name: Run LSIF parser
 #        uses: addnab/docker-run-action@v3
 #        with:
@@ -141,8 +85,6 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-#      - run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }})" >> $GITHUB_ENV
-#      - run: echo "Languages = ${{ env.LANGUAGES }}"
       - name: Find changed files
         run: |
           echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
