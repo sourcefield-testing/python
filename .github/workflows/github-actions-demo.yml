@@ -99,6 +99,7 @@ jobs:
         run: |
           ls -lah
           git checkout ${{ needs.getMergeBase.outputs.merge_base }}
+          grep -rn "^\s*# ::> " . > possible_annotations.txt
           cd /sourcefield
           python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
 
