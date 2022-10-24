@@ -22,12 +22,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
-      - name: Fetch history back to merge-base
-        run: |
-          commits=${{ github.event.pull_request.commits }}
-          if [[ -n "$commits" ]]; then
-            git fetch --depth="$(( commits + 1 ))"
-          fi
+          fetch-depth: 0
       - name: Get merge-base
         id: get-merge-base
         run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
@@ -52,12 +47,12 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-      - name: Fetch history back to merge-base
-        run: |
-          commits=${{ github.event.pull_request.commits }}
-          if [[ -n "$commits" ]]; then
-            git fetch --depth="$(( commits + 1 ))"
-          fi
+#      - name: Fetch history back to merge-base
+#        run: |
+#          commits=${{ github.event.pull_request.commits }}
+#          if [[ -n "$commits" ]]; then
+#            git fetch --depth="$(( commits + 1 ))"
+#          fi
       - name: Get merge-base
         run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
       - name: Run LSIF parser on base ref
@@ -88,19 +83,25 @@ jobs:
       image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9b94ddf'
     needs:
       - fetchLanguages
+      - getDiff
       - parsePython
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
       - run: cd /sourcefield
+      - name: Download diff
+        uses: actions/download-artifact@v3
+        with:
+          name: git-diff
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
           name: map-base-python
 #          path: lsif-output-base.json
+      - run: echo "${PWD}"
       - run: ls -lah
       - name: Run parse processor on base map
         run: |
-          python3 -m processor.python --filename="${PWD##*/}/lsif-output-base.json" - run
+          python3 -m processor.python --filename="${PWD}/lsif-output-base.json" - run
 
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
