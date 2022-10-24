@@ -89,6 +89,7 @@ jobs:
           name: map-base-python
 #          path: lsif-output-base.json
       - run: ls -lah
+      - run: echo "${PWD##*/}/lsif-output-base.json"
       - name: Run parse processor on base map
         run: |
           python3 -m processor.python --filename="${PWD##*/}/lsif-output-base.json" - run
