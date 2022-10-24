@@ -114,6 +114,7 @@ jobs:
           ls -lah /sourcefield
       - name: Diff maps and report metrics to backend
         run: |
+          cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics --map1=/sourcefield/base.pickle --map2=/sourcefield/head.pickle --diff=/sourcefield/diff.txt --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
 #      - name: LSIF Parser
