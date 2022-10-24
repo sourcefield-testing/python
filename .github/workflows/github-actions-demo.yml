@@ -98,7 +98,7 @@ jobs:
       - name: Run parse processor on base map
         run: |
           git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
-          grep -rn "^\s*# ::> " . > possible_annotations.txt || true
+          grep -rn "^\s*# ::> " . > /sourcefield/possible_annotations.txt || true
           ls -lah
           cd /sourcefield
           python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
