@@ -97,7 +97,7 @@ jobs:
           git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
           grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
           cd /sourcefield
-          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run --write_to_file=True --map_output_file="base.pickle"
+          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run --write_to_file=True --map_output_file="/sourcefield/base.pickle"
       - name: Download head map
         uses: actions/download-artifact@v3
         with:
@@ -107,11 +107,14 @@ jobs:
           git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
           grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
           cd /sourcefield
-          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" - run --write_to_file=True --map_output_file="head.pickle"
+          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" - run --write_to_file=True --map_output_file="/sourcefield/head.pickle"
       - name: Get diff
         run: |
-          ls -lah
-          git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
+          git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > /sourcefield/diff.txt
+          ls -lah /sourcefield
+#      - name: Diff maps and report metrics to backend
+#        run: |
+#          python3 -m processor.mapdiff.commands - summarize --map1=/sourcefield/base.pickle --map2=/sourcefield/head.pickle --diff=/sourcefield/diff.txt
 
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
