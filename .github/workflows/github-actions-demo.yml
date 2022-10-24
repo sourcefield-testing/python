@@ -76,7 +76,7 @@ jobs:
       image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
     needs: [fetchLanguages]
 #    if: needs.fetchLanguages.outputs.python == '1'
-    if: contains(needs.fetchLanguages.outputs.languages, 'Python')
+    if: contains(needs.fetchLanguages.outputs.languages, 'JavaScript')
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
