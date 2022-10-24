@@ -91,8 +91,6 @@ jobs:
         with:
           name: map-base-python
 #          path: lsif-output-base.json
-      - name: Checkout merge-base
-        run:
       - name: Run parse processor on base map
         run: |
           git checkout ${{ needs.getMergeBase.outputs.merge_base }}
