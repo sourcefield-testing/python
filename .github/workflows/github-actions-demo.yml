@@ -12,6 +12,25 @@ jobs:
       - name: Get Present Languages
         id: get-present-languages
         run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
+  getDiff:
+    name: Get Merge Base and Diff
+    runs-on: ubuntu-latest
+    outputs:
+      merge_base: ${{ steps.get-merge-base.outputs.MERGE_BASE }}
+    steps:
+      - name: Check out repo (full history)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Fetch history back to merge-base
+        run: |
+          commits=${{ github.event.pull_request.commits }}
+          if [[ -n "$commits" ]]; then
+            git fetch --depth="$(( commits + 1 ))"
+          fi
+      - name: Get merge-base
+        id: get-merge-base
+        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
   parsePython:
     name: Parse Python Maps
     runs-on: ubuntu-latest
@@ -69,6 +88,7 @@ jobs:
         with:
           name: map-base-python
 #          path: lsif-output-base.json
+      - run: ls -lah
       - name: Run parse processor on base map
         run: |
           python3 -m processor.python --filename="${PWD##*/}/lsif-output-base.json" - run
