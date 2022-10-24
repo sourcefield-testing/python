@@ -80,11 +80,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
-      - name: Fetch history through merge-base
-        uses: rmacklin/fetch-through-merge-base@v0
-        with:
-          base_ref: main
-          head_ref: ${{ github.sha }}
+          fetch-depth: 0
+#      - name: Fetch history through merge-base
+#        uses: rmacklin/fetch-through-merge-base@v0
+#        with:
+#          base_ref: main
+#          head_ref: ${{ github.sha }}
 
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
