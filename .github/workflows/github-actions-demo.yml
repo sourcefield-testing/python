@@ -12,7 +12,7 @@ jobs:
       - name: Get Present Languages
         id: get-present-languages
         run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
-  getDiff:
+  getMergeBase:
     name: Get Merge Base and Diff
     runs-on: ubuntu-latest
     outputs:
@@ -25,21 +25,15 @@ jobs:
           fetch-depth: 0
       - name: Get merge-base
         id: get-merge-base
-        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
-      - name: Get diff
-        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
-      - name: Upload diff
-        uses: actions/upload-artifact@v3
-        with:
-          name: git-diff
-          path: diff.txt
-          retention-days: 1
+        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_OUTPUT
   parsePython:
     name: Parse Python Maps
     runs-on: ubuntu-latest
     container:
       image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
-    needs: [fetchLanguages]
+    needs:
+      - fetchLanguages
+      - getMergeBase
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
       - name: Check out repo (full history)
@@ -53,11 +47,9 @@ jobs:
 #          if [[ -n "$commits" ]]; then
 #            git fetch --depth="$(( commits + 1 ))"
 #          fi
-      - name: Get merge-base
-        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
       - name: Run LSIF parser on base ref
         run: |
-          git checkout ${{ env.MERGE_BASE }}
+          git checkout ${{ needs.getMergeBase.outputs.merge_base }}
           lsif-python index --project-name="${{ github.repository }}" --output="lsif-output-base.json"
       - name: Upload map for base commit
         uses: actions/upload-artifact@v3
@@ -83,22 +75,28 @@ jobs:
       image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9b94ddf'
     needs:
       - fetchLanguages
-      - getDiff
+      - getMergeBase
       - parsePython
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
-      - name: Download diff
-        uses: actions/download-artifact@v3
+      - name: Check out repo (full history)
+        uses: actions/checkout@v3
         with:
-          name: git-diff
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Get diff
+        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
           name: map-base-python
 #          path: lsif-output-base.json
+      - name: Checkout merge-base
+        run:
       - name: Run parse processor on base map
-        working-directory: /sourcefield
         run: |
+          git checkout ${{ needs.getMergeBase.outputs.merge_base }}
+          cd /sourcefield
           python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
 
 #      - name: LSIF Parser
