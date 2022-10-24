@@ -31,6 +31,14 @@ jobs:
       - name: Get merge-base
         id: get-merge-base
         run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_ENV
+      - name: Get diff
+        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
+      - name: Upload diff
+        uses: actions/upload-artifact@v3
+        with:
+          name: git-diff
+          path: diff.txt
+          retention-days: 1
   parsePython:
     name: Parse Python Maps
     runs-on: ubuntu-latest
@@ -83,13 +91,13 @@ jobs:
       - parsePython
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
+      - run: cd /sourcefield
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
           name: map-base-python
 #          path: lsif-output-base.json
       - run: ls -lah
-      - run: echo "${PWD##*/}/lsif-output-base.json"
       - name: Run parse processor on base map
         run: |
           python3 -m processor.python --filename="${PWD##*/}/lsif-output-base.json" - run
