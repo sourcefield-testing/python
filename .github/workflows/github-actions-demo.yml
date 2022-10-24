@@ -36,23 +36,43 @@ jobs:
       - name: Run LSIF parser on base ref
         run: |
           git checkout ${{ env.MERGE_BASE }}
-          lsif-python index --project-name="${{ github.repository }}" --output="output.json"
-          cat output.json
+          lsif-python index --project-name="${{ github.repository }}" --output="lsif-output-base.json"
       - name: Upload map for base commit
         uses: actions/upload-artifact@v3
         with:
           name: map-base-python
-          path: output.json
+          path: lsif-output-base.json
+          retention-days: 1
       - name: Run LSIF parser on head ref
         run: |
           git checkout ${{ github.event.pull_request.head.sha }}
-          lsif-python index --project-name="${{ github.repository }}" --output="output.json"
-          cat output.json
+          lsif-python index --project-name="${{ github.repository }}" --output="lsif-output-head.json"
       - name: Upload map for head commit
         uses: actions/upload-artifact@v3
         with:
           name: map-head-python
-          path: output.json
+          path: lsif-output-head.json
+          retention-days: 1
+
+  processPython:
+    name: Process and Diff Python Maps
+    runs-on: ubuntu-latest
+    container:
+      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9b94ddf'
+    needs:
+      - fetchLanguages
+      - parsePython
+    if: contains(needs.fetchLanguages.outputs.languages, 'Python')
+    steps:
+      - name: Download base map
+        uses: actions/download-artifact@v3
+        with:
+          name: map-base-python
+#          path: lsif-output-base.json
+      - name: Run parse processor on base map
+        run: |
+          python3 -m processor.python --filename="${PWD##*/}/lsif-output-base.json" - run
+
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
 #        with:
