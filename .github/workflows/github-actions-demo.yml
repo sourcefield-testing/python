@@ -13,7 +13,7 @@ jobs:
         id: get-present-languages
         run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
   getMergeBase:
-    name: Get Merge Base and Diff
+    name: Get Merge Base
     runs-on: ubuntu-latest
     outputs:
       merge_base: ${{ steps.get-merge-base.outputs.MERGE_BASE }}
@@ -84,8 +84,8 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-      - name: Get diff
-        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
+#      - name: Get diff
+#        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -93,6 +93,7 @@ jobs:
 #          path: lsif-output-base.json
       - name: Run parse processor on base map
         run: |
+          ls -lah
           git checkout ${{ needs.getMergeBase.outputs.merge_base }}
           cd /sourcefield
           python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
