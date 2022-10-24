@@ -67,31 +67,42 @@ jobs:
 #    if: needs.fetchLanguages.outputs.javascript-typescript == '1'
 #    steps:
 #      - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
+
   parsePython:
     name: Parse Python Map
     runs-on: ubuntu-latest
-    container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
+#    container:
+#      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776'
     needs: [fetchLanguages]
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
+#      - name: Check out repository code
+#        uses: actions/checkout@v3
+#        with:
+#          ref: ${{ github.head_ref }}
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
 #        with:
 #          entrypoint: /bin/ls
 #          args: -lah /github/workspace
+#      - name: Run LSIF parser
+#        run: |
+#          ls -lah
+#          ls -lah /__w/python/python
+#          echo "${GITHUB_REPOSITORY}"
+#          echo "${GITHUB_WORKSPACE}"
+#          echo "${LANGUAGES}"
+#          lsif-python index --project-name="${{ github.repository }}"
       - name: Run LSIF parser
-        run: |
-          ls -lah
-          ls -lah /__w/python/python
-          echo "${GITHUB_REPOSITORY}"
-          echo "${GITHUB_WORKSPACE}"
-          echo "${LANGUAGES}"
-          lsif-python index --project-name="${{ github.repository }}"
+        uses: addnab/docker-run-action@v3
+        with:
+          image: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
+          options: -v ${{ github.workspace }}:/github/workspace
+          run: |
+            ls -lah /github/workspace
+            cd /github/workspace
+            lsif-python index --project-name="${{ github.repository }}" --output="output.json"
+            head output.json
 
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
