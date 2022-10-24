@@ -96,7 +96,7 @@ jobs:
       - name: Run LSIF parser
         uses: addnab/docker-run-action@v3
         with:
-          image: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
+          image: us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
           options: -v ${{ github.workspace }}:/github/workspace
           run: |
             ls -lah /github/workspace
