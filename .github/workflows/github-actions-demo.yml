@@ -76,10 +76,15 @@ jobs:
     needs: [fetchLanguages]
     if: needs.fetchLanguages.outputs.python == '1'
     steps:
-#      - name: Check out repository code
-#        uses: actions/checkout@v3
-#        with:
-#          ref: ${{ github.head_ref }}
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Fetch history through merge-base
+        uses: rmacklin/fetch-through-merge-base@v0
+        with:
+          base_ref: main
+          head_ref: ${{ github.sha }}
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
 #        with:
