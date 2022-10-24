@@ -87,7 +87,6 @@ jobs:
       - parsePython
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
-      - run: cd /sourcefield
       - name: Download diff
         uses: actions/download-artifact@v3
         with:
@@ -97,11 +96,10 @@ jobs:
         with:
           name: map-base-python
 #          path: lsif-output-base.json
-      - run: echo "${PWD}"
-      - run: ls -lah
       - name: Run parse processor on base map
+        working-directory: /sourcefield
         run: |
-          python3 -m processor.python --filename="${PWD}/lsif-output-base.json" - run
+          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
 
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
