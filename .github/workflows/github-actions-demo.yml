@@ -24,6 +24,7 @@ jobs:
     needs: [fetchLanguages]
     if: contains(needs.fetchLanguages.outputs.languages, 'Python')
     steps:
+      - run: echo "${{ github.sha }}"
       - name: Check out repo (full history)
         uses: actions/checkout@v3
         with:
@@ -35,6 +36,7 @@ jobs:
           if [[ -n "$commits" ]]; then
             git fetch --depth="$(( commits + 1 ))"
           fi
+      - run: echo "${{ github.sha }}"
       - name: Get merge-base
         run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} ${{ github.sha }})" >> $GITHUB_ENV
       - name: Run LSIF parser on base ref
