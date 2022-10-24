@@ -72,7 +72,7 @@ jobs:
     name: Process and Diff Python Maps
     runs-on: ubuntu-latest
     container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9b94ddf'
+      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:89e5168'
     needs:
       - fetchLanguages
       - getMergeBase
@@ -86,22 +86,32 @@ jobs:
           fetch-depth: 0
       - name: Set ownership
         run: |
-          # this is to fix Git not liking the ownership of the checkout dir
+          # see https://github.com/actions/runner/issues/2033
           chown -R $(id -u):$(id -g) $PWD
-#      - name: Get diff
-#        run: git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
           name: map-base-python
-#          path: lsif-output-base.json
       - name: Run parse processor on base map
         run: |
           git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
           grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          ls -lah
           cd /sourcefield
-          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
+          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run --write_to_file=True --map_output_file="base.pickle"
+      - name: Download head map
+        uses: actions/download-artifact@v3
+        with:
+          name: map-head-python
+      - name: Run parse processor on head map
+        run: |
+          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
+          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
+          cd /sourcefield
+          python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" - run --write_to_file=True --map_output_file="head.pickle"
+      - name: Get diff
+        run: |
+          ls -lah
+          git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > diff.txt
 
 #      - name: LSIF Parser
 #        uses: docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:e854776
