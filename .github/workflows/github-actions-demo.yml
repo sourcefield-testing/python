@@ -49,7 +49,7 @@ jobs:
 #          fi
       - name: Run LSIF parser on base ref
         run: |
-          git checkout ${{ needs.getMergeBase.outputs.merge_base }}
+          git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
           lsif-python index --project-name="${{ github.repository }}" --output="lsif-output-base.json"
       - name: Upload map for base commit
         uses: actions/upload-artifact@v3
@@ -59,7 +59,7 @@ jobs:
           retention-days: 1
       - name: Run LSIF parser on head ref
         run: |
-          git checkout ${{ github.event.pull_request.head.sha }}
+          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
           lsif-python index --project-name="${{ github.repository }}" --output="lsif-output-head.json"
       - name: Upload map for head commit
         uses: actions/upload-artifact@v3
@@ -97,9 +97,10 @@ jobs:
 #          path: lsif-output-base.json
       - name: Run parse processor on base map
         run: |
-          ls -lah
-          git checkout ${{ needs.getMergeBase.outputs.merge_base }}
+          git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
+          grep -rn "^\s*# ::> " .
           grep -rn "^\s*# ::> " . > possible_annotations.txt
+          ls -lah
           cd /sourcefield
           python3 -m processor.python --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" - run
 
