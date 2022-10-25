@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       languages: ${{ steps.languages.outputs.LANGUAGES }}
-      languageCSV: ${{ steps.languages.outputs.LANGUAGES_CSV }}
     steps:
       - name: Get Present Languages
         id: languages
@@ -19,16 +18,6 @@ jobs:
           echo 'LANGUAGES<<EOF' >> $GITHUB_OUTPUT
           curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys' >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
-          echo "LANGUAGES_CSV=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys | join(",")')" >> $GITHUB_OUTPUT
-
-  checkLanguages:
-    name: Check Language values
-    runs-on: ubuntu-latest
-    needs:
-      - fetchLanguages
-    steps:
-      - run: echo ${{ contains(needs.fetchLanguages.outputs.languagesCSV, 'Python') }}
-      - run: echo ${{ contains(fromJson(needs.fetchLanguages.outputs.languages), 'Python') }}
 
   getMergeBase:
     name: Get Merge Base
@@ -54,7 +43,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'Python')
+    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Python')
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -90,7 +79,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'TypeScript')
+    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'TypeScript')
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -126,7 +115,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'JavaScript')
+    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'JavaScript')
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -162,7 +151,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'Java') && !contains(needs.fetchLanguages.outputs.languages, 'JavaScript')
+    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Java')
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -204,7 +193,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'Go')
+    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Go')
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
