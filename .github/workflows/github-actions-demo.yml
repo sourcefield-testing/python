@@ -10,11 +10,25 @@ jobs:
     name: Fetch Languages in Repo
     runs-on: ubuntu-latest
     outputs:
-      languages: ${{ steps.get-present-languages.outputs.LANGUAGES }}
+      languages: ${{ steps.languages.outputs.LANGUAGES }}
+      languageCSV: ${{ steps.languages.outputs.LANGUAGES_CSV }}
     steps:
       - name: Get Present Languages
-        id: get-present-languages
-        run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
+        id: languages
+        run: |
+          echo 'LANGUAGES<<EOF' >> $GITHUB_OUTPUT
+          curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys' >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+          echo "LANGUAGES_CSV=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys | join(",")')" >> $GITHUB_OUTPUT
+
+  checkLanguages:
+    name: Check Language values
+    runs-on: ubuntu-latest
+    needs:
+      - fetchLanguages
+    steps:
+      - run: echo ${{ contains(needs.fetchLanguages.outputs.languagesCSV, 'Python') }}
+      - run: echo ${{ contains(fromJson(needs.fetchLanguages.outputs.languages), 'Python') }}
 
   getMergeBase:
     name: Get Merge Base
@@ -25,7 +39,8 @@ jobs:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
       - name: Get merge-base
         id: get-merge-base
