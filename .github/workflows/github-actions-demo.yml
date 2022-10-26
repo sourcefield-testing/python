@@ -11,13 +11,41 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       languages: ${{ steps.languages.outputs.LANGUAGES }}
+      python: ${{ steps.get-present-languages.outputs.PYTHON }}
+      java: ${{ steps.get-present-languages.outputs.JAVA }}
+      typescript: ${{ steps.get-present-languages.outputs.TYPESCRIPT }}
+      go: ${{ steps.get-present-languages.outputs.GO }}
     steps:
-      - name: Get Present Languages
-        id: languages
+      - name: Check out repo (full history)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Get languages from extensions of changed files
+        id: get-present-languages
         run: |
-          echo 'LANGUAGES<<EOF' >> $GITHUB_OUTPUT
-          curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys' >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} \
+          | rev | cut -d. -f1 | rev | sort | uniq |
+          while IFS= read -r extension; do
+            case "$extension" in
+            .py | .cgi | .fcgi | .gyp | .gypi | .lmi | .py3 | .pyde | .pyi | .pyp | .pyt | .pyw | .rpy | .smk | .spec | .tac | .wsgi | .xpy)
+              echo "PYTHON=1" >> $GITHUB_OUTPUT
+              ;;
+            .java | .jav | .jsh)
+              echo "JAVA=1" >> $GITHUB_OUTPUT
+              ;;
+            .ts | .cts | .mts | .tsx | .js | ._js | .bones | .cjs | .es | .es6 | .frag | .gs | .jake | .javascript | .jsb | .jscad | .jsfl | .jslib | .jsm | .jspre | .jss | .jsx | .mjs | .njs | .pac | .sjs | .ssjs | .xsjs | .xsjslib)
+              echo "TYPESCRIPT=1" >> $GITHUB_OUTPUT
+              ;;
+            go)
+              echo "GO=1" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Language not yet supported: ${language}"
+              ;;
+            esac
+          done
 
   getMergeBase:
     name: Get Merge Base
@@ -43,7 +71,8 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Python')
+#    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Python')
+    if: needs.fetchLanguages.outputs.python == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -79,7 +108,8 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'TypeScript')
+#    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'TypeScript')
+    if: needs.fetchLanguages.outputs.typescript == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -107,42 +137,6 @@ jobs:
           path: lsif-output-head.json
           retention-days: 1
 
-  parseJavaScript:
-    name: Parse JavaScript Maps
-    runs-on: ubuntu-latest
-    container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:014b3f5'
-    needs:
-      - fetchLanguages
-      - getMergeBase
-    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'JavaScript')
-    steps:
-      - name: Check out repo (full history)
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Run LSIF parser on base ref
-        run: |
-          git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
-          lsif-typescript index --infer-tsconfig --output="lsif-output-base.json"
-      - name: Upload map for base commit
-        uses: actions/upload-artifact@v3
-        with:
-          name: map-base-javascript
-          path: lsif-output-base.json
-          retention-days: 1
-      - name: Run LSIF parser on head ref
-        run: |
-          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          lsif-typescript index --infer-tsconfig --output="lsif-output-head.json"
-      - name: Upload map for head commit
-        uses: actions/upload-artifact@v3
-        with:
-          name: map-head-javascript
-          path: lsif-output-head.json
-          retention-days: 1
-
   parseJava:
     name: Parse Java Maps
     runs-on: ubuntu-latest
@@ -151,7 +145,8 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Java')
+#    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Java')
+    if: needs.fetchLanguages.outputs.java == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -193,7 +188,8 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Go')
+#    if: contains(fromJson(needs.fetchLanguages.outputs.languages), 'Go')
+    if: needs.fetchLanguages.outputs.go == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -318,66 +314,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: map-head-typescript
-      - name: Run parse processor on head map
-        run: |
-          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          cd /sourcefield
-          python3 -m processor.python \
-          --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" \
-          - run \
-          --write_to_file=True \
-          --map_output_file="/sourcefield/head.pickle"
-      - name: Get diff
-        run: |
-          git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > /sourcefield/diff.txt
-          ls -lah /sourcefield
-      - name: Diff maps and report metrics to backend
-        run: |
-          cd /sourcefield
-          python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --map1=/sourcefield/base.pickle \
-          --map2=/sourcefield/head.pickle \
-          --diff=/sourcefield/diff.txt \
-          --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
-
-  processMapsJavaScript:
-    name: Process and Diff Maps (JavaScript)
-    runs-on: ubuntu-latest
-    container:
-      image: 'us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:f179cd9'
-    needs:
-      - fetchLanguages
-      - getMergeBase
-      - parseJavaScript
-    steps:
-      - name: Check out repo (full history)
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
-      - name: Download base map
-        uses: actions/download-artifact@v3
-        with:
-          name: map-base-javascript
-      - name: Run parse processor on base map
-        run: |
-          git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          cd /sourcefield
-          python3 -m processor.python \
-          --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" \
-          - run \
-          --write_to_file=True \
-          --map_output_file="/sourcefield/base.pickle"
-      - name: Download head map
-        uses: actions/download-artifact@v3
-        with:
-          name: map-head-javascript
       - name: Run parse processor on head map
         run: |
           git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
