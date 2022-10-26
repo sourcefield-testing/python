@@ -10,7 +10,6 @@ jobs:
     name: Fetch Languages in Repo
     runs-on: ubuntu-latest
     outputs:
-      languages: ${{ steps.languages.outputs.LANGUAGES }}
       python: ${{ steps.get-present-languages.outputs.PYTHON }}
       java: ${{ steps.get-present-languages.outputs.JAVA }}
       typescript: ${{ steps.get-present-languages.outputs.TYPESCRIPT }}
@@ -30,19 +29,23 @@ jobs:
           while IFS= read -r extension; do
             case "$extension" in
             .py | .cgi | .fcgi | .gyp | .gypi | .lmi | .py3 | .pyde | .pyi | .pyp | .pyt | .pyw | .rpy | .smk | .spec | .tac | .wsgi | .xpy)
+              echo "Some Python files changed (${extension})"
               echo "PYTHON=1" >> $GITHUB_OUTPUT
               ;;
             .java | .jav | .jsh)
+              echo "Some Java files changed (${extension})"
               echo "JAVA=1" >> $GITHUB_OUTPUT
               ;;
             .ts | .cts | .mts | .tsx | .js | ._js | .bones | .cjs | .es | .es6 | .frag | .gs | .jake | .javascript | .jsb | .jscad | .jsfl | .jslib | .jsm | .jspre | .jss | .jsx | .mjs | .njs | .pac | .sjs | .ssjs | .xsjs | .xsjslib)
+              echo "Some TS/JS files changed (${extension})"
               echo "TYPESCRIPT=1" >> $GITHUB_OUTPUT
               ;;
             go)
+              echo "Some go files changed (${extension})"
               echo "GO=1" >> $GITHUB_OUTPUT
               ;;
             *)
-              echo "Language not yet supported: ${language}"
+              echo "Language not yet supported: ${extension}"
               ;;
             esac
           done
