@@ -1,10 +1,23 @@
-name: GitHub Actions Demo
+name: SourceField GitHub Workflow
 
 on:
   pull_request:
     types: [opened, synchronize]
 
+env:
+  SOURCEFIELD_LICENSE_KEY: ${{ secrets.SOURCEFIELD_LICENSE_KEY }}
+
 jobs:
+  initialComment:
+    name: Post initial PR Comment (calculating...)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update or create PR comment
+        run: |
+          curl -s -X POST \
+          -H "Content-Type: application/json" \
+          -d '{ "query": "mutation { prCommentRiskScorePending(pr: {repoOwner: \"${{ github.event.repository.owner.login }}\", repoName: \"${{ github.event.repository.name }}\", prNumber: ${{ github.event.pull_request.number }} }) }" }' \
+          https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql
 
   fetchLanguages:
     name: Fetch Languages in Repo
@@ -46,6 +59,9 @@ jobs:
               ;;
             *)
               echo "No parseable language detected for extension: ${extension}"
+              # TODO: add a link to a language request form at the bottom of the risk score PR comment (ENG-1355)
+              #   https://docs.google.com/forms/d/e/1FAIpQLSen2HT-GfeSpyiNo3vcxB4rhOlb-4EoOMUS2nJ7qpyijDIbOQ/viewform
+              # TODO: after parsing, if we don't have any supported languages, finalize with a note instead of the SVG (ENG-1339)
               ;;
             esac
           done
@@ -220,7 +236,7 @@ jobs:
     name: Process and Diff Maps (Python)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:cc6bf07"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2642040"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -232,13 +248,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
-      - name: Print event path
-        run: |
-          echo "${GITHUB_EVENT_PATH}"
-          cat "${GITHUB_EVENT_PATH}"
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -275,19 +286,17 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --repo_owner="${{ github.event.pull_request.base.repo.owner.login }}" \
-          --repo_name="${{ github.event.pull_request.base.repo.name }}" \
-          --pr_number=${{ github.event.pull_request.number }} \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
+          --pr_event="${GITHUB_EVENT_PATH}" \
           --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
   processMapsTypeScript:
     name: Process and Diff Maps (TypeScript and JavaScript)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:cc6bf07"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2642040"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -299,9 +308,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -338,19 +346,17 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --repo_owner="${{ github.event.pull_request.base.repo.owner.login }}" \
-          --repo_name="${{ github.event.pull_request.base.repo.name }}" \
-          --pr_number=${{ github.event.pull_request.number }} \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
+          --pr_event="${GITHUB_EVENT_PATH}" \
           --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
   processMapsJava:
     name: Process and Diff Maps (Java)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:cc6bf07"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2642040"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -362,9 +368,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -401,19 +406,17 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --repo_owner="${{ github.event.pull_request.base.repo.owner.login }}" \
-          --repo_name="${{ github.event.pull_request.base.repo.name }}" \
-          --pr_number=${{ github.event.pull_request.number }} \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
+          --pr_event="${GITHUB_EVENT_PATH}" \
           --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
   processMapsGo:
     name: Process and Diff Maps (Go)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:cc6bf07"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2642040"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -425,9 +428,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -464,65 +466,28 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --repo_owner="${{ github.event.pull_request.base.repo.owner.login }}" \
-          --repo_name="${{ github.event.pull_request.base.repo.name }}" \
-          --pr_number=${{ github.event.pull_request.number }} \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
+          --pr_event="${GITHUB_EVENT_PATH}" \
           --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
-  Explore-GitHub-Actions:
+  finalize:
+    name: Finalize metrics
     runs-on: ubuntu-latest
+    container:
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2642040"
+    needs:
+      - fetchLanguages
+      - getMergeBase
+      - processMapsPython
+      - processMapsTypeScript
+      - processMapsJava
+      - processMapsGo
+    if: ${{ always() }}
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-      - name: Hello world from Docker
-        uses: ./ # Uses an action in the root directory
-        id: hello
-        with:
-          who-to-greet: 'awesome'
-      - uses: rmacklin/fetch-through-merge-base@v0
-        with:
-          base_ref: ${{ github.base_ref }}
-          head_ref: ${{ github.event.pull_request.head.sha }}
-      # now we've fetched commits through the merge-base of the source branch
-      # and target branch of the pull request, so we can do things like:
-      - run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} ${{ github.event.pull_request.head.sha }})" >> $GITHUB_ENV
-      - run: echo "merge base = ${{ env.MERGE_BASE }}"
-      - run: echo "HEAD = ${{ github.event.pull_request.head.sha }}"
-      - run: git log --oneline main..
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
-      - name: Find changed files
-        run: |
-          echo 'LS_DIFF<<EOF' >> $GITHUB_ENV
-          git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-      - name: Update or create PR comment
-        uses: thollander/actions-comment-pull-request@v1
-        with:
-          message: |
-            Changed files:
-            ```
-            ${{ env.LS_DIFF }}
-            ```
-            Commit: ${{ github.event.pull_request.head.sha }}
-            <details><summary>Event payload</summary>
-            
-            ```json
-            ${{ toJson(github.event) }}
-            ```
-            
-            ```
-            ${{ env.EVENT_CONTENTS }}
-            ```
-            </details>
-          comment_includes: 'Changed files:'
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          echo "FINALIZING..."
+          echo "HEAD sha: ${{ github.event.pull_request.head.sha }}"
+          echo "BASE sha: ${{ github.event.pull_request.base.sha }}"
+          echo "merge-base sha: ${{ needs.getMergeBase.outputs.merge_base }}"
