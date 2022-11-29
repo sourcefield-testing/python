@@ -65,6 +65,20 @@ jobs:
               ;;
             esac
           done
+      - name: Posthog event
+        run: |
+          curl -v -L \
+          --header "Content-Type: application/json" \
+          -d '{
+              "api_key": "phc_KXXmufnHuoy4uzHzIdFbYR7BRJt9PJYFMmb3YlopkZR",
+              "type": "capture",
+              "distinct_id": "sourcefield-github-actions",
+              "event": "Languages detected",
+              "properties": {
+                  "languages": "${{ env.GITHUB_OUTPUT }}",
+                  "$groups": {"licenseKey": "${{ env.SOURCEFIELD_LICENSE_KEY }}"}
+              }
+          }' https://posthog.sourcefield.io/capture/
 
   getMergeBase:
     name: Get Merge Base
