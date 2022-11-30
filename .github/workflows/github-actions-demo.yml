@@ -37,7 +37,7 @@ jobs:
       - name: Get file extensions of changed files
         id: get-diff-file-extensions
         run: |
-          echo 'LANGUAGES<<EOF' >> $GITHUB_OUTPUT
+          echo 'EXTENSIONS<<EOF' >> $GITHUB_OUTPUT
           git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} \
           | rev | cut -d. -f1 | rev | sort | uniq | jq --raw-input . | jq --slurp . >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
@@ -66,9 +66,6 @@ jobs:
               ;;
             *)
               echo "No parseable language detected for extension: ${extension}"
-              # TODO: add a link to a language request form at the bottom of the risk score PR comment (ENG-1355)
-              #   https://docs.google.com/forms/d/e/1FAIpQLSen2HT-GfeSpyiNo3vcxB4rhOlb-4EoOMUS2nJ7qpyijDIbOQ/viewform
-              # TODO: after parsing, if we don't have any supported languages, finalize with a note instead of the SVG (ENG-1339)
               ;;
             esac
           done
@@ -83,7 +80,13 @@ jobs:
               "distinct_id": "sourcefield-github-actions",
               "event": "Languages detected",
               "properties": {
-                  "languages": ${{ steps.get-diff-file-extensions.outputs.LANGUAGES }},
+                  "file_extensions": ${{ steps.get-diff-file-extensions.outputs.EXTENSIONS }},
+                  "languages": {
+                      "GO": ${{ steps.get-present-languages.outputs.GO == 1 }},
+                      "JAVA": ${{ steps.get-present-languages.outputs.JAVA == 1 }},
+                      "PYTHON": ${{ steps.get-present-languages.outputs.PYTHON == 1 }},
+                      "TYPESCRIPT": ${{ steps.get-present-languages.outputs.TYPESCRIPT == 1 }}
+                  },
                   "$groups": {"licenseKey": "${{ env.SOURCEFIELD_LICENSE_KEY }}"}
               }
           }' https://posthog.sourcefield.io/capture/
