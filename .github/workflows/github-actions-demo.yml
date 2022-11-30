@@ -74,6 +74,7 @@ jobs:
           done
       - name: Posthog event
         run: |
+          echo "${{ steps.get-present-languages.outputs.LANGUAGES }}"
           curl -v -L \
           --header "Content-Type: application/json" \
           -d '{
