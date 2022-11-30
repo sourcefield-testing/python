@@ -37,10 +37,10 @@ jobs:
       - name: Get file extensions of changed files
         id: get-diff-file-extensions
         run: |
-          echo "LANGUAGES=<<EOF" >> $GITHUB_OUTPUT
+          echo 'LANGUAGES<<EOF' >> $GITHUB_OUTPUT
           git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} \
           | rev | cut -d. -f1 | rev | sort | uniq | jq --raw-input . | jq --slurp . >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
       - name: Get languages from extensions of changed files
         id: get-present-languages
         run: |
