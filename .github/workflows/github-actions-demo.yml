@@ -6,6 +6,7 @@ on:
 
 env:
   SOURCEFIELD_LICENSE_KEY: ${{ secrets.SOURCEFIELD_LICENSE_KEY }}
+  POSTHOG_API_KEY: "phc_KXXmufnHuoy4uzHzIdFbYR7BRJt9PJYFMmb3YlopkZR"
 
 jobs:
   initialComment:
@@ -75,7 +76,7 @@ jobs:
           curl -v -L \
           --header "Content-Type: application/json" \
           -d '{
-              "api_key": "phc_KXXmufnHuoy4uzHzIdFbYR7BRJt9PJYFMmb3YlopkZR",
+              "api_key": "${{ env.POSTHOG_API_KEY }}"},
               "type": "capture",
               "distinct_id": "sourcefield-github-actions",
               "event": "Languages detected",
