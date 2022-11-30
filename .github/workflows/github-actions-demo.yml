@@ -74,7 +74,7 @@ jobs:
           done
       - name: Posthog event
         run: |
-          echo "${{ steps.get-present-languages.outputs.LANGUAGES }}"
+          echo "${{ steps.get-diff-file-extensions.outputs.LANGUAGES }}"
           curl -v -L \
           --header "Content-Type: application/json" \
           -d '{
@@ -83,7 +83,7 @@ jobs:
               "distinct_id": "sourcefield-github-actions",
               "event": "Languages detected",
               "properties": {
-                  "languages": ${{ steps.get-present-languages.outputs.LANGUAGES }},
+                  "languages": ${{ steps.get-diff-file-extensions.outputs.LANGUAGES }},
                   "$groups": {"licenseKey": "${{ env.SOURCEFIELD_LICENSE_KEY }}"}
               }
           }' https://posthog.sourcefield.io/capture/
