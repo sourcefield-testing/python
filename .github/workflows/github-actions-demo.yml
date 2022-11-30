@@ -82,7 +82,7 @@ jobs:
               "distinct_id": "sourcefield-github-actions",
               "event": "Languages detected",
               "properties": {
-                  "languages": ${{ steps.get-present-languages.outputs.LANGUAGES) }},
+                  "languages": ${{ steps.get-present-languages.outputs.LANGUAGES }},
                   "$groups": {"licenseKey": "${{ env.SOURCEFIELD_LICENSE_KEY }}"}
               }
           }' https://posthog.sourcefield.io/capture/
