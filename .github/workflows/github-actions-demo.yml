@@ -76,7 +76,7 @@ jobs:
           curl -v -L \
           --header "Content-Type: application/json" \
           -d '{
-              "api_key": "${{ env.POSTHOG_API_KEY }}"},
+              "api_key": "${{ env.POSTHOG_API_KEY }}",
               "type": "capture",
               "distinct_id": "sourcefield-github-actions",
               "event": "Languages detected",
