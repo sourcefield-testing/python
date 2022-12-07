@@ -3,6 +3,10 @@ name: SourceField GitHub Workflow
 on:
   pull_request:
     types: [opened, synchronize]
+  workflow_dispatch:
+
+env:
+  SOURCEFIELD_LICENSE_KEY: ${{ secrets.SOURCEFIELD_LICENSE_KEY }}
 
 jobs:
   initialComment:
@@ -14,17 +18,51 @@ jobs:
           curl -s -X POST \
           -H "Content-Type: application/json" \
           -d '{ "query": "mutation { prCommentRiskScorePending(pr: {repoOwner: \"${{ github.event.repository.owner.login }}\", repoName: \"${{ github.event.repository.name }}\", prNumber: ${{ github.event.pull_request.number }} }) }" }' \
-          https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql
+          https://cartographr-api.sourcefield.io/dev-tdattilo-sourcefield/graphql
 
   fetchLanguages:
     name: Fetch Languages in Repo
     runs-on: ubuntu-latest
     outputs:
-      languages: ${{ steps.get-present-languages.outputs.LANGUAGES }}
+      python: ${{ steps.get-present-languages.outputs.PYTHON }}
+      java: ${{ steps.get-present-languages.outputs.JAVA }}
+      typescript: ${{ steps.get-present-languages.outputs.TYPESCRIPT }}
+      go: ${{ steps.get-present-languages.outputs.GO }}
     steps:
-      - name: Get Present Languages
+      - name: Check out repo (full history)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Get languages from extensions of changed files
         id: get-present-languages
-        run: echo "LANGUAGES=$(curl -s ${{ github.event.repository.languages_url }} | jq -r 'keys[]')" >> $GITHUB_OUTPUT
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} \
+          | rev | cut -d. -f1 | rev | sort | uniq |
+          while IFS= read -r extension; do
+            case "$extension" in
+            py | cgi | fcgi | gyp | gypi | lmi | py3 | pyde | pyi | pyp | pyt | pyw | rpy | smk | spec | tac | wsgi | xpy)
+              echo "Some Python files changed (${extension})"
+              echo "PYTHON=1" >> $GITHUB_OUTPUT
+              ;;
+            java | jav | jsh)
+              echo "Some Java files changed (${extension})"
+              echo "JAVA=1" >> $GITHUB_OUTPUT
+              ;;
+            ts | cts | mts | tsx | js | _js | bones | cjs | es | es6 | frag | gs | jake | javascript | jsb | jscad | jsfl | jslib | jsm | jspre | jss | jsx | mjs | njs | pac | sjs | ssjs | xsjs | xsjslib)
+              echo "Some TS/JS files changed (${extension})"
+              echo "TYPESCRIPT=1" >> $GITHUB_OUTPUT
+              ;;
+            go)
+              echo "Some go files changed (${extension})"
+              echo "GO=1" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "No parseable language detected for extension: ${extension}"
+              ;;
+            esac
+          done
 
   getMergeBase:
     name: Get Merge Base
@@ -35,7 +73,8 @@ jobs:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
       - name: Get merge-base
         id: get-merge-base
@@ -49,7 +88,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'Python')
+    if: needs.fetchLanguages.outputs.python == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -78,14 +117,14 @@ jobs:
           retention-days: 1
 
   parseTypeScript:
-    name: Parse TypeScript Maps
+    name: Parse TypeScript and JavaScript Maps
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:014b3f5"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:5cc5657"
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'TypeScript')
+    if: needs.fetchLanguages.outputs.typescript == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -95,7 +134,7 @@ jobs:
       - name: Run LSIF parser on base ref
         run: |
           git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
-          lsif-typescript index --output="lsif-output-base.json"
+          lsif-typescript index --explicit-implicit-loop --output="lsif-output-base.json"
       - name: Upload map for base commit
         uses: actions/upload-artifact@v3
         with:
@@ -105,47 +144,11 @@ jobs:
       - name: Run LSIF parser on head ref
         run: |
           git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          lsif-typescript index --output="lsif-output-head.json"
+          lsif-typescript index --explicit-implicit-loop --output="lsif-output-head.json"
       - name: Upload map for head commit
         uses: actions/upload-artifact@v3
         with:
           name: map-head-typescript
-          path: lsif-output-head.json
-          retention-days: 1
-
-  parseJavaScript:
-    name: Parse JavaScript Maps
-    runs-on: ubuntu-latest
-    container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:014b3f5"
-    needs:
-      - fetchLanguages
-      - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'JavaScript')
-    steps:
-      - name: Check out repo (full history)
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Run LSIF parser on base ref
-        run: |
-          git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
-          lsif-typescript index --infer-tsconfig --output="lsif-output-base.json"
-      - name: Upload map for base commit
-        uses: actions/upload-artifact@v3
-        with:
-          name: map-base-javascript
-          path: lsif-output-base.json
-          retention-days: 1
-      - name: Run LSIF parser on head ref
-        run: |
-          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          lsif-typescript index --infer-tsconfig --output="lsif-output-head.json"
-      - name: Upload map for head commit
-        uses: actions/upload-artifact@v3
-        with:
-          name: map-head-javascript
           path: lsif-output-head.json
           retention-days: 1
 
@@ -157,7 +160,7 @@ jobs:
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'Java') && !contains(needs.fetchLanguages.outputs.languages, 'JavaScript')
+    if: needs.fetchLanguages.outputs.java == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -195,11 +198,11 @@ jobs:
     name: Parse Go Maps
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:57d9af0"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:2437c0c"
     needs:
       - fetchLanguages
       - getMergeBase
-    if: contains(needs.fetchLanguages.outputs.languages, 'Go')
+    if: needs.fetchLanguages.outputs.go == '1'
     steps:
       - name: Check out repo (full history)
         uses: actions/checkout@v3
@@ -231,7 +234,7 @@ jobs:
     name: Process and Diff Maps (Python)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:f179cd9"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:6b34720"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -243,9 +246,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -282,16 +284,18 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
+          --language="PYTHON" \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
-          --backend_url="$GRAPHQL_ENDPOINT"
+          --pr_event="${GITHUB_EVENT_PATH}" \
+          --backend_url="https://cartographr-api.sourcefield.io/dev-tdattilo-sourcefield/graphql"
 
   processMapsTypeScript:
-    name: Process and Diff Maps (TypeScript)
+    name: Process and Diff Maps (TypeScript and JavaScript)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:f179cd9"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:6b34720"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -303,9 +307,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -342,76 +345,18 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
+          --language="TS_JS" \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
-          --backend_url="$GRAPHQL_ENDPOINT"
-
-  processMapsJavaScript:
-    name: Process and Diff Maps (JavaScript)
-    runs-on: ubuntu-latest
-    container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:f179cd9"
-    needs:
-      - fetchLanguages
-      - getMergeBase
-      - parseJavaScript
-    steps:
-      - name: Check out repo (full history)
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
-      - name: Download base map
-        uses: actions/download-artifact@v3
-        with:
-          name: map-base-javascript
-      - name: Run parse processor on base map
-        run: |
-          git -c advice.detachedHead=false checkout ${{ needs.getMergeBase.outputs.merge_base }}
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          cd /sourcefield
-          python3 -m processor.python \
-          --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" \
-          - run \
-          --write_to_file=True \
-          --map_output_file="/sourcefield/base.pickle"
-      - name: Download head map
-        uses: actions/download-artifact@v3
-        with:
-          name: map-head-javascript
-      - name: Run parse processor on head map
-        run: |
-          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          cd /sourcefield
-          python3 -m processor.python \
-          --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" \
-          - run \
-          --write_to_file=True \
-          --map_output_file="/sourcefield/head.pickle"
-      - name: Get diff
-        run: |
-          git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > /sourcefield/diff.txt
-          ls -lah /sourcefield
-      - name: Diff maps and report metrics to backend
-        run: |
-          cd /sourcefield
-          python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --map1=/sourcefield/base.pickle \
-          --map2=/sourcefield/head.pickle \
-          --diff=/sourcefield/diff.txt \
-          --backend_url="$GRAPHQL_ENDPOINT"
+          --pr_event="${GITHUB_EVENT_PATH}" \
+          --backend_url="https://cartographr-api.sourcefield.io/dev-tdattilo-sourcefield/graphql"
 
   processMapsJava:
     name: Process and Diff Maps (Java)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:f179cd9"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:6b34720"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -423,9 +368,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -462,16 +406,18 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
+          --language="JAVA" \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
-          --backend_url="$GRAPHQL_ENDPOINT"
+          --pr_event="${GITHUB_EVENT_PATH}" \
+          --backend_url="https://cartographr-api.sourcefield.io/dev-tdattilo-sourcefield/graphql"
 
   processMapsGo:
     name: Process and Diff Maps (Go)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:f179cd9"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:6b34720"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -483,9 +429,8 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Set ownership
-        run: |
-          # see https://github.com/actions/runner/issues/2033
-          chown -R $(id -u):$(id -g) $PWD
+        # see https://github.com/actions/runner/issues/2033
+        run: chown -R $(id -u):$(id -g) $PWD
       - name: Download base map
         uses: actions/download-artifact@v3
         with:
@@ -522,7 +467,32 @@ jobs:
         run: |
           cd /sourcefield
           python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
+          --language="GO" \
           --map1=/sourcefield/base.pickle \
           --map2=/sourcefield/head.pickle \
           --diff=/sourcefield/diff.txt \
-          --backend_url="$GRAPHQL_ENDPOINT"
+          --pr_event="${GITHUB_EVENT_PATH}" \
+          --backend_url="https://cartographr-api.sourcefield.io/dev-tdattilo-sourcefield/graphql"
+
+  finalize:
+    name: Finalize metrics
+    runs-on: ubuntu-latest
+    container:
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:6b34720"
+    needs:
+      - fetchLanguages
+      - getMergeBase
+      - processMapsPython
+      - processMapsTypeScript
+      - processMapsJava
+      - processMapsGo
+    if: ${{ always() }}
+    steps:
+      - name: Create score card
+        run: |
+          cd /sourcefield
+          python3 -m processor.mapdiff.commands - create_score_card \
+          --pr_event="${GITHUB_EVENT_PATH}" \
+          --merge_base_sha=${{ needs.getMergeBase.outputs.merge_base }} \
+          --head_sha=${{ github.event.pull_request.head.sha }} \
+          --backend_url="https://cartographr-api.sourcefield.io/dev-tdattilo-sourcefield/graphql"
