@@ -276,7 +276,7 @@ jobs:
     name: Process and Diff Maps (Python)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:95d9f7d"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -337,7 +337,7 @@ jobs:
     name: Process and Diff Maps (TypeScript and JavaScript)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:95d9f7d"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -398,7 +398,7 @@ jobs:
     name: Process and Diff Maps (Java)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:95d9f7d"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -459,7 +459,7 @@ jobs:
     name: Process and Diff Maps (Go)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:95d9f7d"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -520,7 +520,7 @@ jobs:
     name: Finalize metrics
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:95d9f7d"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
     needs:
       - fetchLanguages
       - getMergeBase
