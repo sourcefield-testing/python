@@ -9,8 +9,12 @@ class Bar:
     def bar(self):
         testing = True
         if testing:
-            bar = ["a", "b", "c"]
-        print("testing")
+            bar = [
+                "a",
+                "b",
+                "c"
+            ]
+            print("testing")
         print("bar")
 
     # ::> owners hwkns
