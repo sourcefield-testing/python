@@ -10,9 +10,9 @@ class Bar:
         testing = True
         if testing:
             bar = [
-                "a",
-                "b",
-                "c"
+                    "a",
+                    "b",
+                    "c"
             ]
             print("testing")
         print("bar")
