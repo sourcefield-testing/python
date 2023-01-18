@@ -12,7 +12,7 @@ class Bar:
             bar = [
                 "a",
                 "b",
-                "c"
+                "c",
             ]
             print("testing")
         print("bar")
