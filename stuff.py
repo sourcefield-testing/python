@@ -7,7 +7,7 @@ class Foo:
 class Bar:
 
     def bar(self):
-        testing = True
+        testing = (1)
         if testing:
             bar = [
                 "a",
