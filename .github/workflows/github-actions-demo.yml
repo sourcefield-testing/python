@@ -95,12 +95,13 @@ jobs:
       # PYTHON
       - name: Run LSIF parser on base ref
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:af0add6"
-        run: |
-          git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }}
-          lsif-python index \
-          --project-name="${{ github.repository }}" \
-          --output="lsif-output-base.json" \
-          --skip="${{ steps.get-present-languages.outputs.PYTHON != '1' }}"
+        with:
+          entrypoint: |
+            git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }} && \
+            lsif-python index \
+            --project-name="${{ github.repository }}" \
+            --output="lsif-output-base.json" \
+            --skip="${{ steps.get-present-languages.outputs.PYTHON != '1' }}"
       - name: Upload map for base commit
         uses: actions/upload-artifact@v3
         with:
@@ -109,12 +110,13 @@ jobs:
           retention-days: 1
       - name: Run LSIF parser on head ref
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:af0add6"
-        run: |
-          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          lsif-python index \
-          --project-name="${{ github.repository }}" \
-          --output="lsif-output-head.json" \
-          --skip="${{ steps.get-present-languages.outputs.PYTHON != '1' }}"
+        with:
+          entrypoint: |
+            git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }} && \
+            lsif-python index \
+            --project-name="${{ github.repository }}" \
+            --output="lsif-output-head.json" \
+            --skip="${{ steps.get-present-languages.outputs.PYTHON != '1' }}"
       - name: Upload map for head commit
         uses: actions/upload-artifact@v3
         with:
@@ -132,57 +134,61 @@ jobs:
 #          name: map-base-python
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
-        run: |
-          git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }}
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          cd /sourcefield
-          python3 -m processor.python \
-          --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" \
-          - run \
-          --write_to_file=True \
-          --map_output_file="/sourcefield/base.pickle"
+        with:
+          entrypoint: |
+            git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }} && \
+            grep -rn "^\s*# ::> " . > /possible_annotations.txt || true && \
+            cd /sourcefield && \
+            python3 -m processor.python \
+            --filename="${GITHUB_WORKSPACE}/lsif-output-base.json" \
+            - run \
+            --write_to_file=True \
+            --map_output_file="/sourcefield/base.pickle"
 #      - name: Download head map
 #        uses: actions/download-artifact@v3
 #        with:
 #          name: map-head-python
       - name: Run parse processor on head map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
-        run: |
-          git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
-          cd /sourcefield
-          python3 -m processor.python \
-          --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" \
-          - run \
-          --write_to_file=True \
-          --map_output_file="/sourcefield/head.pickle"
+        with:
+          entrypoint: |
+            git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }} && \
+            grep -rn "^\s*# ::> " . > /possible_annotations.txt || true && \
+            cd /sourcefield && \
+            python3 -m processor.python \
+            --filename="${GITHUB_WORKSPACE}/lsif-output-head.json" \
+            - run \
+            --write_to_file=True \
+            --map_output_file="/sourcefield/head.pickle"
       - name: Get diff
         run: |
           git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > /sourcefield/diff.txt
           ls -lah /sourcefield
       - name: Diff maps and report metrics to backend
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
-        run: |
-          cd /sourcefield
-          python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
-          --language="PYTHON" \
-          --map1=/sourcefield/base.pickle \
-          --map2=/sourcefield/head.pickle \
-          --diff=/sourcefield/diff.txt \
-          --pr_event="${GITHUB_EVENT_PATH}" \
-          --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
+        with:
+          entrypoint: |
+            cd /sourcefield && \
+            python3 -m processor.mapdiff.commands - diff_maps_and_report_metrics \
+            --language="PYTHON" \
+            --map1=/sourcefield/base.pickle \
+            --map2=/sourcefield/head.pickle \
+            --diff=/sourcefield/diff.txt \
+            --pr_event="${GITHUB_EVENT_PATH}" \
+            --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
       # FINALIZE
       - name: Create score card
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
         if: ${{ always() }}
-        run: |
-          cd /sourcefield
-          python3 -m processor.mapdiff.commands - create_score_card \
-          --pr_event="${GITHUB_EVENT_PATH}" \
-          --merge_base_sha=${{ steps.get-merge-base.outputs.MERGE_BASE }} \
-          --head_sha=${{ github.event.pull_request.head.sha }} \
-          --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
+        with:
+          entrypoint: |
+            cd /sourcefield && \
+            python3 -m processor.mapdiff.commands - create_score_card \
+            --pr_event="${GITHUB_EVENT_PATH}" \
+            --merge_base_sha=${{ steps.get-merge-base.outputs.MERGE_BASE }} \
+            --head_sha=${{ github.event.pull_request.head.sha }} \
+            --backend_url="https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
 
 #  initialComment:
