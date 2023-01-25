@@ -103,6 +103,8 @@ jobs:
         # see https://github.com/actions/runner/issues/2033
         run: |
           git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }}
+          git config --global --add safe.directory ${{ github.workspace }}
+          pwd
           chown -R $(id -u):$(id -g) $PWD
 
       # PYTHON
@@ -110,18 +112,18 @@ jobs:
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:55a6cb9"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
-          OUTPUT_FILE: lsif-output-base.json
+          OUTPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
         with:
-          entrypoint: /sourcefield/entrypoint.sh
+          entrypoint: ${{ github.workspace }}/entrypoint.sh
       - name: Look for annotations
         run: grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:af0a999"
         with:
-          entrypoint: /sourcefield/entrypoint.sh
+          entrypoint: ${{ github.workspace }}/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
-          OUTPUT_FILE: /sourcefield/python-base.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/python-base.pickle
 
       # TYPESCRIPT
       - name: Run LSIF TypeScript parser on base commit
