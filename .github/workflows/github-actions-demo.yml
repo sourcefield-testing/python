@@ -112,13 +112,13 @@ jobs:
           SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
           OUTPUT_FILE: lsif-output-base.json
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
         run: grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:af0a999"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/python-base.pickle
