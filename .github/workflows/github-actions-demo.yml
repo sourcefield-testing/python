@@ -90,7 +90,6 @@ jobs:
 
       - name: Get diff output
         run: |
-          mkdir -p /sourcefield
           git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > ${{ github.workspace }}/diff.txt
 
       - name: Get merge-base
