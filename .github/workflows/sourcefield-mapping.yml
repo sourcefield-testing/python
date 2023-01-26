@@ -18,6 +18,7 @@ jobs:
         run: |
           curl -s -X POST \
           -H "Content-Type: application/json" \
+          -H "Sourcefield-License-Key: ${{ env.SOURCEFIELD_LICENSE_KEY }}" \
           -d '{ "query": "mutation { prCommentRiskScorePending(pr: {repoOwner: \"${{ github.event.repository.owner.login }}\", repoName: \"${{ github.event.repository.name }}\", prNumber: ${{ github.event.pull_request.number }} }) }" }' \
           https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql
 
@@ -276,7 +277,7 @@ jobs:
     name: Process and Diff Maps (Python)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -337,7 +338,7 @@ jobs:
     name: Process and Diff Maps (TypeScript and JavaScript)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -398,7 +399,7 @@ jobs:
     name: Process and Diff Maps (Java)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -459,7 +460,7 @@ jobs:
     name: Process and Diff Maps (Go)
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
     needs:
       - fetchLanguages
       - getMergeBase
@@ -520,7 +521,7 @@ jobs:
     name: Finalize metrics
     runs-on: ubuntu-latest
     container:
-      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:72665eb"
+      image: "us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3ab672c"
     needs:
       - fetchLanguages
       - getMergeBase
