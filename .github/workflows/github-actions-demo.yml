@@ -118,7 +118,7 @@ jobs:
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: lsif-output-base.json
           OUTPUT_FILE: python-base.pickle
