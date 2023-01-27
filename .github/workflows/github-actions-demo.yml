@@ -116,7 +116,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -134,7 +134,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -152,7 +152,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -170,7 +170,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -194,7 +194,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -212,7 +212,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -230,7 +230,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -248,7 +248,7 @@ jobs:
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: entrypoint.sh
         env:
@@ -261,7 +261,7 @@ jobs:
 
       # PYTHON
       - name: Diff Python maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: map-diff.sh
         env:
@@ -274,7 +274,7 @@ jobs:
 
       # TYPESCRIPT
       - name: Diff TypeScript maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: map-diff.sh
         env:
@@ -287,7 +287,7 @@ jobs:
 
       # JAVA
       - name: Diff Java maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: map-diff.sh
         env:
@@ -300,7 +300,7 @@ jobs:
 
       # GO
       - name: Diff Go maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: map-diff.sh
         env:
@@ -316,7 +316,7 @@ jobs:
       # -----------------------
       - name: Create score card
         if: ${{ always() }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:3c412db"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: scorecard.sh
         env:
