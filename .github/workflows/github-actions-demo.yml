@@ -114,14 +114,16 @@ jobs:
         with:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
+        run: |
+          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
+          ls -lah
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
-          INPUT_FILE: lsif-output-base.json
-          OUTPUT_FILE: python-base.pickle
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
+          OUTPUT_FILE: ${{ github.workspace }}/python-base.pickle
 
       # TYPESCRIPT
       - name: Run LSIF TypeScript parser on base commit
@@ -318,7 +320,7 @@ jobs:
         if: ${{ always() }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
         with:
-          entrypoint: scorecard.sh
+          entrypoint: /sourcefield/scorecard.sh
         env:
           MERGE_BASE_SHA: ${{ steps.get-merge-base.outputs.MERGE_BASE }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
