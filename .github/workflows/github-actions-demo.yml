@@ -276,9 +276,9 @@ jobs:
           entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: PYTHON
-          MAP_1_PATH: /sourcefield/python-base.pickle
-          MAP_2_PATH: /sourcefield/python-head.pickle
-          GIT_DIFF_PATH: /sourcefield/diff.txt
+          MAP_1_PATH: ${{ github.workspace }}/python-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/python-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
           PR_EVENT_PATH: ${{ github.event_path }}
           BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
@@ -289,9 +289,9 @@ jobs:
           entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: TYPESCRIPT
-          MAP_1_PATH: /sourcefield/typescript-base.pickle
-          MAP_2_PATH: /sourcefield/typescript-head.pickle
-          GIT_DIFF_PATH: /sourcefield/diff.txt
+          MAP_1_PATH: ${{ github.workspace }}/typescript-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/typescript-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
           PR_EVENT_PATH: ${{ github.event_path }}
           BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
@@ -302,9 +302,9 @@ jobs:
           entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: JAVA
-          MAP_1_PATH: /sourcefield/java-base.pickle
-          MAP_2_PATH: /sourcefield/java-head.pickle
-          GIT_DIFF_PATH: /sourcefield/diff.txt
+          MAP_1_PATH: ${{ github.workspace }}/java-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/java-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
           PR_EVENT_PATH: ${{ github.event_path }}
           BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
@@ -315,9 +315,9 @@ jobs:
           entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: GO
-          MAP_1_PATH: /sourcefield/go-base.pickle
-          MAP_2_PATH: /sourcefield/go-head.pickle
-          GIT_DIFF_PATH: /sourcefield/diff.txt
+          MAP_1_PATH: ${{ github.workspace }}/go-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/go-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
           PR_EVENT_PATH: ${{ github.event_path }}
           BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
 
