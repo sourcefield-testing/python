@@ -139,7 +139,7 @@ jobs:
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/typescript-base.pickle
@@ -158,7 +158,7 @@ jobs:
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/java-base.pickle
@@ -177,7 +177,7 @@ jobs:
       - name: Run parse processor on base map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/go-base.pickle
@@ -202,7 +202,7 @@ jobs:
       - name: Run parse processor on head map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/python-head.pickle
@@ -221,7 +221,7 @@ jobs:
       - name: Run parse processor on head map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/typescript-head.pickle
@@ -240,7 +240,7 @@ jobs:
       - name: Run parse processor on head map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/java-head.pickle
@@ -259,7 +259,7 @@ jobs:
       - name: Run parse processor on head map
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/go-head.pickle
@@ -273,7 +273,7 @@ jobs:
       - name: Diff Python maps and report metrics to backend
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: map-diff.sh
+          entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: PYTHON
           MAP_1_PATH: /sourcefield/python-base.pickle
@@ -286,7 +286,7 @@ jobs:
       - name: Diff TypeScript maps and report metrics to backend
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: map-diff.sh
+          entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: TYPESCRIPT
           MAP_1_PATH: /sourcefield/typescript-base.pickle
@@ -299,7 +299,7 @@ jobs:
       - name: Diff Java maps and report metrics to backend
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: map-diff.sh
+          entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: JAVA
           MAP_1_PATH: /sourcefield/java-base.pickle
@@ -312,7 +312,7 @@ jobs:
       - name: Diff Go maps and report metrics to backend
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
-          entrypoint: map-diff.sh
+          entrypoint: /sourcefield/map-diff.sh
         env:
           LANGUAGE: GO
           MAP_1_PATH: /sourcefield/go-base.pickle
