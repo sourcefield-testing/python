@@ -102,6 +102,7 @@ jobs:
       - name: Check out merge-base
         # see https://github.com/actions/runner/issues/2033
         run: |
+          git config --global --add safe.directory ${{ github.workspace }}
           git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }}
           chown -R $(id -u):$(id -g) $PWD
 
@@ -129,6 +130,7 @@ jobs:
 
       # TYPESCRIPT
       - name: Run LSIF TypeScript parser on base commit
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:c99808d"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.TYPESCRIPT != '1' }}
@@ -168,6 +170,7 @@ jobs:
 
       # GO
       - name: Run LSIF Go parser on base commit
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:92002d3"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.GO != '1' }}
@@ -193,6 +196,7 @@ jobs:
 
       # PYTHON
       - name: Run LSIF Python parser on head commit
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:55a6cb9"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
@@ -212,6 +216,7 @@ jobs:
 
       # TYPESCRIPT
       - name: Run LSIF TypeScript parser on head commit
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:c99808d"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.TYPESCRIPT != '1' }}
@@ -231,6 +236,7 @@ jobs:
 
       # JAVA
       - name: Run LSIF Java parser on head commit
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-java:5e2f7c5"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.JAVA != '1' }}
@@ -250,6 +256,7 @@ jobs:
 
       # GO
       - name: Run LSIF Go parser on head commit
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:92002d3"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.GO != '1' }}
@@ -273,6 +280,7 @@ jobs:
 
       # PYTHON
       - name: Diff Python maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/map-diff.sh
@@ -286,6 +294,7 @@ jobs:
 
       # TYPESCRIPT
       - name: Diff TypeScript maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/map-diff.sh
@@ -299,6 +308,7 @@ jobs:
 
       # JAVA
       - name: Diff Java maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/map-diff.sh
@@ -312,6 +322,7 @@ jobs:
 
       # GO
       - name: Diff Go maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/map-diff.sh
