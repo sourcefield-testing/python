@@ -142,7 +142,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
-          OUTPUT_FILE: /sourcefield/typescript-base.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/typescript-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # JAVA
@@ -161,7 +161,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
-          OUTPUT_FILE: /sourcefield/java-base.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/java-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # GO
@@ -180,7 +180,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
-          OUTPUT_FILE: /sourcefield/go-base.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/go-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # -----------------------
@@ -205,7 +205,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
-          OUTPUT_FILE: /sourcefield/python-head.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/python-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # TYPESCRIPT
@@ -224,7 +224,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
-          OUTPUT_FILE: /sourcefield/typescript-head.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/typescript-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # JAVA
@@ -243,7 +243,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
-          OUTPUT_FILE: /sourcefield/java-head.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/java-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # GO
@@ -262,7 +262,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
-          OUTPUT_FILE: /sourcefield/go-head.pickle
+          OUTPUT_FILE: ${{ github.workspace }}/go-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # -----------------------
