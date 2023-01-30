@@ -133,7 +133,7 @@ jobs:
           SKIP: ${{ steps.get-present-languages.outputs.TYPESCRIPT != '1' }}
           OUTPUT_FILE: lsif-output-base.json
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /entrypoint.sh
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
@@ -152,7 +152,7 @@ jobs:
           SKIP: ${{ steps.get-present-languages.outputs.JAVA != '1' }}
           OUTPUT_FILE: lsif-output-base.json
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
@@ -215,7 +215,7 @@ jobs:
           SKIP: ${{ steps.get-present-languages.outputs.TYPESCRIPT != '1' }}
           OUTPUT_FILE: lsif-output-head.json
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /entrypoint.sh
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
@@ -234,7 +234,7 @@ jobs:
           SKIP: ${{ steps.get-present-languages.outputs.JAVA != '1' }}
           OUTPUT_FILE: lsif-output-head.json
         with:
-          entrypoint: entrypoint.sh
+          entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
