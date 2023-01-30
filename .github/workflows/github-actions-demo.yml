@@ -107,6 +107,7 @@ jobs:
 
       # PYTHON
       - name: Run LSIF Python parser on base commit
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:55a6cb9"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
@@ -147,6 +148,7 @@ jobs:
 
       # JAVA
       - name: Run LSIF Java parser on base commit
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-java:5e2f7c5"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.JAVA != '1' }}
@@ -288,7 +290,7 @@ jobs:
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
-          LANGUAGE: TYPESCRIPT
+          LANGUAGE: TS_JS
           MAP_1_PATH: ${{ github.workspace }}/typescript-base.pickle
           MAP_2_PATH: ${{ github.workspace }}/typescript-head.pickle
           GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
