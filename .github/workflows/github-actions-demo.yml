@@ -115,15 +115,16 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
         run: |
-          grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
+          grep -rn "^\s*# ::> " . > possible_annotations.txt || true
           ls -lah
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: ${{ github.workspace }}/python-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # TYPESCRIPT
       - name: Run LSIF TypeScript parser on base commit
@@ -134,14 +135,15 @@ jobs:
         with:
           entrypoint: entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/typescript-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # JAVA
       - name: Run LSIF Java parser on base commit
@@ -152,14 +154,15 @@ jobs:
         with:
           entrypoint: entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/java-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # GO
       - name: Run LSIF Go parser on base commit
@@ -170,14 +173,15 @@ jobs:
         with:
           entrypoint: /src/entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: /sourcefield/go-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # -----------------------
       # HEAD COMMIT
@@ -194,14 +198,15 @@ jobs:
         with:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*# ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*# ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/python-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # TYPESCRIPT
       - name: Run LSIF TypeScript parser on head commit
@@ -212,14 +217,15 @@ jobs:
         with:
           entrypoint: entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/typescript-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # JAVA
       - name: Run LSIF Java parser on head commit
@@ -230,14 +236,15 @@ jobs:
         with:
           entrypoint: entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/java-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # GO
       - name: Run LSIF Go parser on head commit
@@ -248,14 +255,15 @@ jobs:
         with:
           entrypoint: /src/entrypoint.sh
       - name: Look for annotations
-        run: grep -rn "^\s*// ::> " . > /possible_annotations.txt || true
+        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: entrypoint.sh
         env:
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: /sourcefield/go-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
 
       # -----------------------
       # MAP DIFF
@@ -263,7 +271,7 @@ jobs:
 
       # PYTHON
       - name: Diff Python maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: map-diff.sh
         env:
@@ -276,7 +284,7 @@ jobs:
 
       # TYPESCRIPT
       - name: Diff TypeScript maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: map-diff.sh
         env:
@@ -289,7 +297,7 @@ jobs:
 
       # JAVA
       - name: Diff Java maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: map-diff.sh
         env:
@@ -302,7 +310,7 @@ jobs:
 
       # GO
       - name: Diff Go maps and report metrics to backend
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: map-diff.sh
         env:
@@ -318,7 +326,7 @@ jobs:
       # -----------------------
       - name: Create score card
         if: ${{ always() }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:b87a9ce"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/scorecard.sh
         env:
