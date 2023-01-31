@@ -108,7 +108,7 @@ jobs:
       # PYTHON
       - name: Run LSIF Python parser on base commit
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:55a6cb9"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:7d28b39"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
           OUTPUT_FILE: lsif-output-base.json
@@ -204,7 +204,7 @@ jobs:
       # PYTHON
       - name: Run LSIF Python parser on head commit
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:55a6cb9"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:7d28b39"
         env:
           SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
           OUTPUT_FILE: lsif-output-head.json
