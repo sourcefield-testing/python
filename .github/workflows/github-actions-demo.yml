@@ -102,9 +102,8 @@ jobs:
       - name: Check out merge-base
         # see https://github.com/actions/runner/issues/2033
         run: |
-          git config --global --add safe.directory ${{ github.workspace }}
           git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }}
-          chown -R $(id -u):$(id -g) $PWD
+#          chown -R $(id -u):$(id -g) $PWD
 
       # PYTHON
       - name: Run LSIF Python parser on base commit
@@ -116,10 +115,12 @@ jobs:
         with:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         run: |
           grep -rn "^\s*# ::> " . > possible_annotations.txt || true
           ls -lah
       - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -138,8 +139,10 @@ jobs:
         with:
           entrypoint: /entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -158,8 +161,10 @@ jobs:
         with:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -178,8 +183,10 @@ jobs:
         with:
           entrypoint: /src/entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -204,8 +211,10 @@ jobs:
         with:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         run: grep -rn "^\s*# ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -224,8 +233,10 @@ jobs:
         with:
           entrypoint: /entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -244,8 +255,10 @@ jobs:
         with:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
@@ -264,8 +277,10 @@ jobs:
         with:
           entrypoint: /src/entrypoint.sh
       - name: Look for annotations
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
         uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
         with:
           entrypoint: /sourcefield/entrypoint.sh
