@@ -114,17 +114,13 @@ jobs:
           OUTPUT_FILE: lsif-output-base.json
         with:
           entrypoint: /sourcefield/entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        run: |
-          grep -rn "^\s*# ::> " . > possible_annotations.txt || true
-          ls -lah
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: PYTHON
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: ${{ github.workspace }}/python-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -138,15 +134,13 @@ jobs:
           OUTPUT_FILE: lsif-output-base.json
         with:
           entrypoint: /entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: TS_JS
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: ${{ github.workspace }}/typescript-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -160,15 +154,13 @@ jobs:
           OUTPUT_FILE: lsif-output-base.json
         with:
           entrypoint: /sourcefield/entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: JAVA
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: ${{ github.workspace }}/java-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -182,15 +174,13 @@ jobs:
           OUTPUT_FILE: lsif-output-base.json
         with:
           entrypoint: /src/entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: GO
           INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
           OUTPUT_FILE: ${{ github.workspace }}/go-base.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -210,15 +200,13 @@ jobs:
           OUTPUT_FILE: lsif-output-head.json
         with:
           entrypoint: /sourcefield/entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        run: grep -rn "^\s*# ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: PYTHON
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: ${{ github.workspace }}/python-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -232,15 +220,13 @@ jobs:
           OUTPUT_FILE: lsif-output-head.json
         with:
           entrypoint: /entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: TS_JS
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: ${{ github.workspace }}/typescript-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -254,15 +240,13 @@ jobs:
           OUTPUT_FILE: lsif-output-head.json
         with:
           entrypoint: /sourcefield/entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: JAVA
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: ${{ github.workspace }}/java-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -276,15 +260,13 @@ jobs:
           OUTPUT_FILE: lsif-output-head.json
         with:
           entrypoint: /src/entrypoint.sh
-      - name: Look for annotations
-        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        run: grep -rn "^\s*// ::> " . > possible_annotations.txt || true
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
+          LANGUAGE: PYTHON
           INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
           OUTPUT_FILE: ${{ github.workspace }}/go-head.pickle
           ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
@@ -296,7 +278,7 @@ jobs:
       # PYTHON
       - name: Diff Python maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -310,7 +292,7 @@ jobs:
       # TYPESCRIPT
       - name: Diff TypeScript maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -324,7 +306,7 @@ jobs:
       # JAVA
       - name: Diff Java maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -338,7 +320,7 @@ jobs:
       # GO
       - name: Diff Go maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -354,7 +336,7 @@ jobs:
       # -----------------------
       - name: Create score card
         if: ${{ always() }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:2d1ea51"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor/lsif-processor:9ba0af2"
         with:
           entrypoint: /sourcefield/scorecard.sh
         env:
