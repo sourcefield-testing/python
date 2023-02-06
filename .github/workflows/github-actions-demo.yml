@@ -11,8 +11,8 @@ env:
 
 jobs:
 
-  oneJobToRuleThemAll:
-    name: Do all the things
+  sourcefield:
+    name: SourceField - Parse, Map, and Score
     runs-on: ubuntu-latest
     steps:
       - name: Update or create PR comment
@@ -116,7 +116,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -136,7 +136,7 @@ jobs:
           entrypoint: /entrypoint.sh
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -156,7 +156,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -176,7 +176,7 @@ jobs:
           entrypoint: /src/entrypoint.sh
       - name: Run parse processor on base map
         if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -202,7 +202,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -222,7 +222,7 @@ jobs:
           entrypoint: /entrypoint.sh
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -242,7 +242,7 @@ jobs:
           entrypoint: /sourcefield/entrypoint.sh
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -262,7 +262,7 @@ jobs:
           entrypoint: /src/entrypoint.sh
       - name: Run parse processor on head map
         if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/entrypoint.sh
         env:
@@ -278,7 +278,7 @@ jobs:
       # PYTHON
       - name: Diff Python maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -292,7 +292,7 @@ jobs:
       # TYPESCRIPT
       - name: Diff TypeScript maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -306,7 +306,7 @@ jobs:
       # JAVA
       - name: Diff Java maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -320,7 +320,7 @@ jobs:
       # GO
       - name: Diff Go maps and report metrics to backend
         if: ${{ steps.get-present-languages.outputs.GO == '1' }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/map-diff.sh
         env:
@@ -336,7 +336,7 @@ jobs:
       # -----------------------
       - name: Create score card
         if: ${{ always() }}
-        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:9ba0af2"
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
         with:
           entrypoint: /sourcefield/scorecard.sh
         env:
