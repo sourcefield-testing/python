@@ -7,4 +7,4 @@ class Foo:
 class Bar:
 
     def bar(self):
-        print("bar")
+        print("baa")
