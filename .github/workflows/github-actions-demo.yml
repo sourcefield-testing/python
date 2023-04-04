@@ -1,0 +1,346 @@
+name: SourceField GitHub Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+env:
+  SOURCEFIELD_LICENSE_KEY: ${{ secrets.SOURCEFIELD_LICENSE_KEY }}
+  POSTHOG_API_KEY: "phc_KXXmufnHuoy4uzHzIdFbYR7BRJt9PJYFMmb3YlopkZR"
+
+jobs:
+
+  sourcefield:
+    name: SourceField - Parse, Map, and Score
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update or create PR comment
+        run: |
+          curl -s -X POST \
+          -H "Content-Type: application/json" \
+          -H "Sourcefield-License-Key: ${{ env.SOURCEFIELD_LICENSE_KEY }}" \
+          -d '{ "query": "mutation { prCommentRiskScorePending(pr: {repoOwner: \"${{ github.event.repository.owner.login }}\", repoName: \"${{ github.event.repository.name }}\", prNumber: ${{ github.event.pull_request.number }} }) }" }' \
+          https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql
+
+      - name: Check out repo (full history)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+
+      - name: Get file extensions of changed files
+        id: get-diff-file-extensions
+        run: |
+          echo 'EXTENSIONS<<EOF' >> $GITHUB_OUTPUT
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} \
+          | rev | cut -d. -f1 | rev | sort | uniq | jq --raw-input . | jq --slurp . >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Get languages from extensions of changed files
+        id: get-present-languages
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} \
+          | rev | cut -d. -f1 | rev | sort | uniq |
+          while IFS= read -r extension; do
+            case "$extension" in
+            py | cgi | fcgi | gyp | gypi | lmi | py3 | pyde | pyi | pyp | pyt | pyw | rpy | smk | spec | tac | wsgi | xpy)
+              echo "Some Python files changed (${extension})"
+              echo "PYTHON=1" >> $GITHUB_OUTPUT
+              ;;
+            java | jav | jsh)
+              echo "Some Java files changed (${extension})"
+              echo "JAVA=1" >> $GITHUB_OUTPUT
+              ;;
+            ts | cts | mts | tsx | js | _js | bones | cjs | es | es6 | frag | gs | jake | javascript | jsb | jscad | jsfl | jslib | jsm | jspre | jss | jsx | mjs | njs | pac | sjs | ssjs | xsjs | xsjslib)
+              echo "Some TS/JS files changed (${extension})"
+              echo "TYPESCRIPT=1" >> $GITHUB_OUTPUT
+              ;;
+            go)
+              echo "Some go files changed (${extension})"
+              echo "GO=1" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "No parseable language detected for extension: ${extension}"
+              ;;
+            esac
+          done
+
+      - name: Languages and extensions Posthog event
+        run: |
+          curl -L \
+          --header "Content-Type: application/json" \
+          -d '{
+              "api_key": "${{ env.POSTHOG_API_KEY }}",
+              "type": "capture",
+              "distinct_id": "sourcefield-github-actions",
+              "event": "Languages detected",
+              "properties": {
+                  "file_extensions": ${{ steps.get-diff-file-extensions.outputs.EXTENSIONS }},
+                  "languages": {
+                      "GO": ${{ steps.get-present-languages.outputs.GO == 1 }},
+                      "JAVA": ${{ steps.get-present-languages.outputs.JAVA == 1 }},
+                      "PYTHON": ${{ steps.get-present-languages.outputs.PYTHON == 1 }},
+                      "TYPESCRIPT": ${{ steps.get-present-languages.outputs.TYPESCRIPT == 1 }}
+                  },
+                  "$groups": {"licenseKey": "${{ env.SOURCEFIELD_LICENSE_KEY }}"}
+              }
+          }' https://posthog.sourcefield.io/capture/
+
+      - name: Get diff output
+        run: |
+          git diff origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > ${{ github.workspace }}/diff.txt
+
+      - name: Get merge-base
+        id: get-merge-base
+        run: echo "MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> $GITHUB_OUTPUT
+
+      # -----------------------
+      # BASE COMMIT
+      # -----------------------
+      - name: Check out merge-base
+        # see https://github.com/actions/runner/issues/2033
+        run: |
+          git -c advice.detachedHead=false checkout ${{ steps.get-merge-base.outputs.MERGE_BASE }}
+#          chown -R $(id -u):$(id -g) $PWD
+
+      # PYTHON
+      - name: Run LSIF Python parser on base commit
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:7d28b39"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
+          OUTPUT_FILE: lsif-output-base.json
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+      - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: PYTHON
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
+          OUTPUT_FILE: ${{ github.workspace }}/python-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # TYPESCRIPT
+      - name: Run LSIF TypeScript parser on base commit
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:c99808d"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.TYPESCRIPT != '1' }}
+          OUTPUT_FILE: lsif-output-base.json
+        with:
+          entrypoint: /entrypoint.sh
+      - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: TS_JS
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
+          OUTPUT_FILE: ${{ github.workspace }}/typescript-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # JAVA
+      - name: Run LSIF Java parser on base commit
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-java:5e2f7c5"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.JAVA != '1' }}
+          OUTPUT_FILE: lsif-output-base.json
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+      - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: JAVA
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
+          OUTPUT_FILE: ${{ github.workspace }}/java-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # GO
+      - name: Run LSIF Go parser on base commit
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:92002d3"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.GO != '1' }}
+          OUTPUT_FILE: lsif-output-base.json
+        with:
+          entrypoint: /src/entrypoint.sh
+      - name: Run parse processor on base map
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: GO
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-base.json
+          OUTPUT_FILE: ${{ github.workspace }}/go-base.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # -----------------------
+      # HEAD COMMIT
+      # -----------------------
+      - name: Check out HEAD
+        run: git -c advice.detachedHead=false checkout ${{ github.event.pull_request.head.sha }}
+
+      # PYTHON
+      - name: Run LSIF Python parser on head commit
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/lsif-python-pyright:7d28b39"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.PYTHON != '1' }}
+          OUTPUT_FILE: lsif-output-head.json
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+      - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: PYTHON
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
+          OUTPUT_FILE: ${{ github.workspace }}/python-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # TYPESCRIPT
+      - name: Run LSIF TypeScript parser on head commit
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-typescript:c99808d"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.TYPESCRIPT != '1' }}
+          OUTPUT_FILE: lsif-output-head.json
+        with:
+          entrypoint: /entrypoint.sh
+      - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: TS_JS
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
+          OUTPUT_FILE: ${{ github.workspace }}/typescript-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # JAVA
+      - name: Run LSIF Java parser on head commit
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-java:5e2f7c5"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.JAVA != '1' }}
+          OUTPUT_FILE: lsif-output-head.json
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+      - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: JAVA
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
+          OUTPUT_FILE: ${{ github.workspace }}/java-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # GO
+      - name: Run LSIF Go parser on head commit
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/sourcefield-lsif-go:92002d3"
+        env:
+          SKIP: ${{ steps.get-present-languages.outputs.GO != '1' }}
+          OUTPUT_FILE: lsif-output-head.json
+        with:
+          entrypoint: /src/entrypoint.sh
+      - name: Run parse processor on head map
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/entrypoint.sh
+        env:
+          LANGUAGE: PYTHON
+          INPUT_FILE: ${{ github.workspace }}/lsif-output-head.json
+          OUTPUT_FILE: ${{ github.workspace }}/go-head.pickle
+          ANNOTATIONS_FILE: ${{ github.workspace }}/possible_annotations.txt
+
+      # -----------------------
+      # MAP DIFF
+      # -----------------------
+
+      # PYTHON
+      - name: Diff Python maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.PYTHON == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/map-diff.sh
+        env:
+          LANGUAGE: PYTHON
+          MAP_1_PATH: ${{ github.workspace }}/python-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/python-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
+          PR_EVENT_PATH: ${{ github.event_path }}
+          BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
+
+      # TYPESCRIPT
+      - name: Diff TypeScript maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.TYPESCRIPT == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/map-diff.sh
+        env:
+          LANGUAGE: TS_JS
+          MAP_1_PATH: ${{ github.workspace }}/typescript-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/typescript-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
+          PR_EVENT_PATH: ${{ github.event_path }}
+          BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
+
+      # JAVA
+      - name: Diff Java maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.JAVA == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/map-diff.sh
+        env:
+          LANGUAGE: JAVA
+          MAP_1_PATH: ${{ github.workspace }}/java-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/java-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
+          PR_EVENT_PATH: ${{ github.event_path }}
+          BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
+
+      # GO
+      - name: Diff Go maps and report metrics to backend
+        if: ${{ steps.get-present-languages.outputs.GO == '1' }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/map-diff.sh
+        env:
+          LANGUAGE: GO
+          MAP_1_PATH: ${{ github.workspace }}/go-base.pickle
+          MAP_2_PATH: ${{ github.workspace }}/go-head.pickle
+          GIT_DIFF_PATH: ${{ github.workspace }}/diff.txt
+          PR_EVENT_PATH: ${{ github.event_path }}
+          BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
+
+      # -----------------------
+      # FINALIZE
+      # -----------------------
+      - name: Create score card
+        if: ${{ always() }}
+        uses: "docker://us-docker.pkg.dev/plumbr/sourcefield-public/parse-processor:cc84c3c"
+        with:
+          entrypoint: /sourcefield/scorecard.sh
+        env:
+          MERGE_BASE_SHA: ${{ steps.get-merge-base.outputs.MERGE_BASE }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_EVENT_PATH: ${{ github.event_path }}
+          BACKEND_URL: "https://cartographr-api.sourcefield.io/dev-hwkns-plumbr/graphql"
